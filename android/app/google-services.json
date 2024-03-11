@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1098284658012",
+    "project_id": "medcall-4e985",
+    "storage_bucket": "medcall-4e985.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1098284658012:android:6854e6ed44df7c2f726599",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCO_UttaYnbJDhJGETrqTwm_79YL0rpDWk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
