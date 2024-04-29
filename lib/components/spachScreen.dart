@@ -1,15 +1,11 @@
 import 'dart:developer';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_application_1/Api/Api.dart';
-import 'package:flutter_application_1/Auth/login_screen.dart';
-import 'package:flutter_application_1/screens/home_screen.dart';
+
 import 'package:flutter_application_1/screens/welcome_screen.dart';
 import 'package:flutter_application_1/widgets/navbar_roots.dart';
-
-import '../../main.dart';
 
 //splash screen
 class SplashScreen extends StatefulWidget {

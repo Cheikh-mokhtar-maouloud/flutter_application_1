@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/screens/home_screen.dart';
+
 import 'package:flutter_application_1/Auth/login_screen.dart';
 import 'package:flutter_application_1/Auth/sign_up_screen.dart';
-import 'package:flutter_application_1/widgets/navbar_roots.dart';
 
 class WelcomeScreen extends StatelessWidget {
   @override

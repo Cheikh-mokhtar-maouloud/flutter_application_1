@@ -3,14 +3,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/Api/Api.dart';
 import 'package:flutter_application_1/components/button.dart';
-import 'package:flutter_application_1/components/passwords.dart';
 import 'package:flutter_application_1/Auth/ForgetPassword.dart';
-import 'package:flutter_application_1/screens/home_screen.dart';
 import 'package:flutter_application_1/Auth/sign_up_screen.dart';
 import 'package:flutter_application_1/Auth/service/authgoogle.dart';
 import 'package:flutter_application_1/widgets/navbar_roots.dart';
-import 'package:flutter_application_1/Auth/sign_up_screen.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
 class loginScreen extends StatefulWidget {
   @override
@@ -18,310 +14,208 @@ class loginScreen extends StatefulWidget {
 }
 
 class _loginScreenState extends State<loginScreen> {
+  bool isLoading = false;
   bool passToggle = true;
   String email = "", password = "";
   TextEditingController _passwordTextController = TextEditingController();
   TextEditingController _emailTextController = TextEditingController();
   final _formkey = GlobalKey<FormState>();
+
   void userLogin() async {
+    setState(() {
+      isLoading = true; // Commence le chargement
+    });
+
     try {
       String email = _emailTextController.text;
       String password = _passwordTextController.text;
-      await Apis.auth
+      UserCredential userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
+
+      // Ici, récupérez les données supplémentaires nécessaires après la connexion
+      await loadUserData(userCredential.user!.uid);
       if (!mounted) return;
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => NavBarRoots()));
+
+      Navigator.pushReplacement(
+          // Utilisez pushReplacement pour éviter de revenir à l'écran de connexion
+          context,
+          MaterialPageRoute(builder: (context) => NavBarRoots()));
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          backgroundColor: Colors.orangeAccent,
-          content: Text(
-            "No User Found for that Email",
-            style: TextStyle(fontSize: 18.0),
-          ),
-        ));
-        if (await Apis.userExist()) {
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => NavBarRoots()));
-        } else {
-          await Apis.createUser().then((value) {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => loginScreen()));
-          });
-        }
+        showDialogError("No User Found for that Email");
       } else if (e.code == 'wrong-password') {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          backgroundColor: Colors.orangeAccent,
-          content: Text(
-            "Wrong Password Provided by User",
-            style: TextStyle(fontSize: 18.0),
-          ),
-        ));
+        showDialogError("Wrong Password Provided by User");
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false; // Arrête le chargement
+        });
       }
     }
   }
 
-  // Future<void> _signInWithGoogle(BuildContext context) async {
-  //   try {
-  //     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-  //     if (googleUser != null) {
-  //       final GoogleSignInAuthentication googleAuth =
-  //           await googleUser.authentication;
+  Future<void> loadUserData(String userId) async {
+    // Simulez un délai pour le chargement des données ou effectuez des opérations de base de données
+    await Future.delayed(Duration(
+        seconds:
+            2)); // Supposons que cela prend 2 secondes pour charger les données
 
-  //       final AuthCredential credential = GoogleAuthProvider.credential(
-  //         accessToken: googleAuth.accessToken,
-  //         idToken: googleAuth.idToken,
-  //       );
+    // Supposons que vous récupériez des données depuis Firestore ou une autre source
+    // Exemple : FirebaseFirestore.instance.collection('users').doc(userId).get();
+  }
 
-  //       await FirebaseAuth.instance.signInWithCredential(credential);
-
-  //       // Rediriger l'utilisateur vers la page suivante après la connexion
-  //       Navigator.push(
-  //         context,
-  //         MaterialPageRoute(builder: (context) => NavBarRoots()),
-  //       );
-  //     }
-  //   } catch (e) {
-  //     print("Error signing in with Google: $e");
-  //   }
-  // }
+  void showDialogError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      backgroundColor: Colors.orangeAccent,
+      content: Text(
+        message,
+        style: TextStyle(fontSize: 18.0),
+      ),
+    ));
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        color: Colors.white,
-        child: SingleChildScrollView(
-          child: SafeArea(
-            child: Form(
-                key: _formkey,
-                child: Column(children: [
-                  SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Image.asset(
-                      "images/doctors.png",
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  // Padding(
-                  //   padding: const EdgeInsets.all(12),
-                  //   child: TextField(
-                  //     decoration: InputDecoration(
-                  //       border: OutlineInputBorder(),
-                  //       label: Text("Enter Username"),
-                  //       prefixIcon: Icon(Icons.person),
-                  //     ),
-                  //   ),
-                  // ),
-                  // reusableTextField("Entrer Email", Icons.person_outline, false,
-                  //     _emailTextController),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: TextFormField(
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please Entre Email';
-                        }
-                        return null;
-                      },
-                      controller: _emailTextController,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15.0),
-                        ),
-                        labelText: "Enter Email",
-                        prefixIcon: Icon(Icons.email),
-                      ),
-                      onTap: () {
-                        setState(() {
-                          passToggle = !passToggle;
-                        });
-                      },
-                    ),
-                  ),
-                  SizedBox(height: 15),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: TextFormField(
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please Entre Password';
-                        }
-                        return null;
-                      },
-                      controller: _passwordTextController,
-                      obscureText: passToggle,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                              15.0), // Ajout de BorderRadius.circular(15.0)
-                        ),
-                        labelText: "Enter Password",
-                        prefixIcon: Icon(Icons.lock),
-                        suffixIcon: IconButton(
-                          onPressed: () {
-                            setState(() {
-                              passToggle = !passToggle;
-                            });
-                          },
-                          icon: Icon(
-                            passToggle
-                                ? Icons.visibility_off
-                                : Icons.visibility,
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Container(
+              color: Colors.white,
+              child: SingleChildScrollView(
+                child: SafeArea(
+                  child: Form(
+                      key: _formkey,
+                      child: Column(children: [
+                        SizedBox(height: 10),
+                        Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Image.asset(
+                            "images/doctors.png",
                           ),
                         ),
-                      ),
-                    ),
-                  ),
-                  // reusableTextField("Entrer Password", Icons.lock_outline, true,
-                  //     _passwordTextController),
-                  SizedBox(height: 20),
-                  // Padding(
-                  //   padding: const EdgeInsets.all(15),
-                  //   child: InkWell(
-                  //     onTap: () {
-                  //       Navigator.push(
-                  //           context,
-                  //           MaterialPageRoute(
-                  //             builder: (context) => NavBarRoots(),
-                  //           ));
-                  //     },
-                  //     child: Container(
-                  //       padding: EdgeInsets.symmetric(vertical: 15),
-                  //       width: double.infinity,
-                  //       decoration: BoxDecoration(
-                  //         color: Color(0xFF7165D6),
-                  //         borderRadius: BorderRadius.circular(10),
-                  //         boxShadow: [
-                  //           BoxShadow(
-                  //             color: Colors.black12,
-                  //             blurRadius: 4,
-                  //             spreadRadius: 2,
-                  //           ),
-                  //         ],
-                  //       ),
-                  //       child: Center(
-                  //         child: Text(
-                  //           "Log In",
-                  //           style: TextStyle(
-                  //             fontSize: 23,
-                  //             fontWeight: FontWeight.bold,
-                  //             color: Colors.white,
-                  //           ),
-                  //         ),
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
-                  // button(
-                  //   title: "Log In",
-                  //   onTap: () {
-                  //     FirebaseAuth.instance
-                  //         .signInWithEmailAndPassword(
-                  //             email: _emailTextController.text,
-                  //             password: _passwordTextController.text)
-                  //         .then((value) {
-                  //       Navigator.push(
-                  //           context,
-                  //           MaterialPageRoute(
-                  //             builder: (context) => NavBarRoots(),
-                  //           ));
-                  //     }).onError((error, stackTrace) {
-                  //       print("Error ${error.toString()}");
-                  //     });
-                  //   },
-                  // ),
-                  button(
-                    title: " Login ",
-                    onTap: () {
-                      if (_formkey.currentState!.validate()) {
-                        userLogin();
-                      }
-                    },
-                  ),
-                  Center(
-                    child: TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => ForgotPassword()));
-                      },
-                      child: Text(
-                        "Forget Password",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                        SizedBox(height: 10),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 20),
+                          child: TextFormField(
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please Entre Email';
+                              }
+                              return null;
+                            },
+                            controller: _emailTextController,
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15.0),
+                              ),
+                              labelText: "Enter Email",
+                              prefixIcon: Icon(Icons.email),
+                            ),
+                            onTap: () {
+                              setState(() {
+                                passToggle = !passToggle;
+                              });
+                            },
+                          ),
                         ),
-                      ),
-                    ),
-                  ),
-
-                  Center(
-                    child: Text(
-                      "or LogIn with",
-                      style: TextStyle(
-                          color: Color(0xFF273671),
-                          fontSize: 22.0,
-                          fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 15.0,
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          AuthMethods().signInWithGoogle(context);
-                        },
-                        child: Image.asset(
-                          "images/google.png",
-                          height: 30,
-                          width: 30,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "Don't have any account?",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black54,
+                        SizedBox(height: 15),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 20),
+                          child: TextFormField(
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please Entre Password';
+                              }
+                              return null;
+                            },
+                            controller: _passwordTextController,
+                            obscureText: passToggle,
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                    15.0), // Ajout de BorderRadius.circular(15.0)
+                              ),
+                              labelText: "Enter Password",
+                              prefixIcon: Icon(Icons.lock),
+                              suffixIcon: IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    passToggle = !passToggle;
+                                  });
+                                },
+                                icon: Icon(
+                                  passToggle
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                ),
+                              ),
                             ),
                           ),
-                          TextButton(
+                        ),
+                        SizedBox(height: 20),
+                        button(
+                          title: " Login ",
+                          onTap: () {
+                            if (_formkey.currentState!.validate()) {
+                              userLogin();
+                            }
+                          },
+                        ),
+                        Center(
+                          child: TextButton(
                             onPressed: () {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => SignUpScreen(),
-                                  ));
+                                      builder: (context) => ForgotPassword()));
                             },
                             child: Text(
-                              "Create Account",
+                              "Forget Password",
                               style: TextStyle(
-                                fontSize: 18,
+                                fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF7165D6),
                               ),
                             ),
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ])),
-          ),
-        ),
-      ),
+                        ),
+                        SizedBox(
+                          height: 15.0,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Don't have any account?",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black54,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => SignUpScreen(),
+                                    ));
+                              },
+                              child: Text(
+                                "Create Account",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF7165D6),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ])),
+                ),
+              ),
+            ),
     );
   }
 }

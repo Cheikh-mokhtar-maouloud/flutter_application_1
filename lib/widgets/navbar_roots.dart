@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/screens/chat.dart';
+
 import 'package:flutter_application_1/screens/home_screen.dart';
 import 'package:flutter_application_1/screens/messages_screen.dart';
 import 'package:flutter_application_1/screens/schedule_screen.dart';
@@ -45,16 +45,17 @@ class _NavBarRootsState extends State<NavBarRoots> {
           },
           items: [
             BottomNavigationBarItem(
-                icon: Icon(Icons.home_filled), label: "Home"),
+                icon: Icon(Icons.home_filled), label: "Accueil"),
             BottomNavigationBarItem(
                 icon: Icon(
                   CupertinoIcons.chat_bubble_text_fill,
                 ),
                 label: "Messages"),
             BottomNavigationBarItem(
-                icon: Icon(Icons.calendar_month_outlined), label: "Schedule"),
+                icon: Icon(Icons.calendar_month_outlined),
+                label: "Rendez-vous"),
             BottomNavigationBarItem(
-                icon: Icon(Icons.settings), label: "Settings"),
+                icon: Icon(Icons.settings), label: "paramètre"),
           ],
         ),
       ),

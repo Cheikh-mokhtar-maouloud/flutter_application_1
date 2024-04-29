@@ -30,6 +30,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  provider: ^6.1.0
   firebase_core: ^2.25.4
 
   # The following adds the Cupertino Icons font to your application.
@@ -42,18 +45,27 @@ dependencies:
   firebase_messaging: ^14.7.16
   google_sign_in: ^6.2.1
   the_apple_sign_in: ^1.1.1
-  file_picker: ^6.2.0
+  file_picker: ^8.0.0+1
   shared_preferences: ^2.0.13
   cached_network_image: ^3.3.1
   image_picker: ^0.8.6
   # shared_preferences: ^0.7.2
   path_provider: ^2.0.11
-  numberpicker: ^2.0.0
-  provider: ^6.1.0
+  # numberpicker: ^2.0.0
 
+  # fluttertoast: ^8.0.8
+  intl: ^0.18.1
+  flutter_pdfview: ^1.3.2
+  dio: ^4.0.0
+  # flutter_image_compress: ^1.1.0
+  # flutter_stripe: ^2.0.2
+  # cloud_functions: ^3.3.0
+  # agora_rtc_engine: ^5.2.0
+  # permission_handler: ^8.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # http: ^0.13.3
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -71,11 +83,12 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  generate: true
 
   # To add assets to your application, add an assets section, like this:
   assets:
     - images/
-  #   - images/a_dot_ham.jpeg
+    - assets/lang/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

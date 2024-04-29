@@ -1,137 +1,7 @@
-// import 'package:flutter/material.dart';
-// import 'package:te3alom/widgets/upcoming_schedule.dart';
-
-// class ScheduleScreen extends StatefulWidget {
-//   @override
-//   State<ScheduleScreen> createState() => _ScheduleScreenState();
-// }
-
-// class _ScheduleScreenState extends State<ScheduleScreen> {
-//   int _buttonIndex = 0;
-
-//   final _scheduleWidgets = [
-//     // UpcomingSchedule(),
-//     Container(),
-//     Container(),
-//   ];
-//   @override
-//   Widget build(BuildContext context) {
-//     return SingleChildScrollView(
-//         child: Padding(
-//       padding: const EdgeInsets.only(top: 40),
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           Padding(
-//             padding: const EdgeInsets.symmetric(horizontal: 15),
-//             child: Text(
-//               "Schedule",
-//               style: TextStyle(
-//                 fontSize: 32,
-//                 fontWeight: FontWeight.w500,
-//               ),
-//             ),
-//           ),
-//           SizedBox(height: 20),
-//           Container(
-//             padding: EdgeInsets.all(5),
-//             margin: EdgeInsets.symmetric(horizontal: 10),
-//             decoration: BoxDecoration(
-//               color: Color(0xFFF4F6FA),
-//               borderRadius: BorderRadius.circular(10),
-//             ),
-//             child: Row(
-//               mainAxisAlignment: MainAxisAlignment.center,
-//               children: [
-//                 InkWell(
-//                   onTap: () {
-//                     setState(() {
-//                       _buttonIndex = 0;
-//                     });
-//                   },
-//                   child: Container(
-//                     padding: EdgeInsets.symmetric(vertical: 12, horizontal: 25),
-//                     decoration: BoxDecoration(
-//                       color: _buttonIndex == 0
-//                           ? Color(0xFF7165D6)
-//                           : Colors.transparent,
-//                       borderRadius: BorderRadius.circular(10),
-//                     ),
-//                     child: Text(
-//                       "Upcoming",
-//                       style: TextStyle(
-//                         fontSize: 16,
-//                         fontWeight: FontWeight.w500,
-//                         color:
-//                             _buttonIndex == 0 ? Colors.white : Colors.black38,
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//                 InkWell(
-//                   onTap: () {
-//                     setState(() {
-//                       _buttonIndex = 1;
-//                     });
-//                   },
-//                   child: Container(
-//                     padding: EdgeInsets.symmetric(vertical: 12, horizontal: 25),
-//                     decoration: BoxDecoration(
-//                       color: _buttonIndex == 1
-//                           ? Color(0xFF7165D6)
-//                           : Colors.transparent,
-//                       borderRadius: BorderRadius.circular(10),
-//                     ),
-//                     child: Text(
-//                       "Completed",
-//                       style: TextStyle(
-//                         fontSize: 16,
-//                         fontWeight: FontWeight.w500,
-//                         color:
-//                             _buttonIndex == 1 ? Colors.white : Colors.black38,
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//                 InkWell(
-//                   onTap: () {
-//                     setState(() {
-//                       _buttonIndex = 2;
-//                     });
-//                   },
-//                   child: Container(
-//                     padding: EdgeInsets.symmetric(vertical: 12, horizontal: 25),
-//                     decoration: BoxDecoration(
-//                       color: _buttonIndex == 2
-//                           ? Color(0xFF7165D6)
-//                           : Colors.transparent,
-//                       borderRadius: BorderRadius.circular(10),
-//                     ),
-//                     child: Text(
-//                       "Completed",
-//                       style: TextStyle(
-//                         fontSize: 16,
-//                         fontWeight: FontWeight.w500,
-//                         color:
-//                             _buttonIndex == 2 ? Colors.white : Colors.black38,
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//           SizedBox(height: 30),
-//           // Widgets According to buttons
-//           _scheduleWidgets[_buttonIndex]
-//         ],
-//       ),
-//     ));
-//   }
-// }
-
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/widgets/upcoming_schedule.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart'; // Assurez-vous d'avoir ajouté intl à vos dépendances
 
 class ScheduleScreen extends StatefulWidget {
   @override
@@ -139,87 +9,138 @@ class ScheduleScreen extends StatefulWidget {
 }
 
 class _ScheduleScreenState extends State<ScheduleScreen> {
-  int _buttonIndex = 0;
+  late User _user;
 
-  final _scheduleWidgets = [
-    // UpcomingSchedule(),
-    Container(),
-    Container(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _user = FirebaseAuth.instance.currentUser!;
+  }
+
+  Future<String> getDoctorName(String doctorId) async {
+    DocumentSnapshot doctorSnapshot = await FirebaseFirestore.instance
+        .collection('doctors')
+        .doc(doctorId)
+        .get();
+    return doctorSnapshot.exists
+        ? doctorSnapshot.get('Nom') ?? 'Nom inconnu'
+        : 'Docteur non trouvé';
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Schedule"),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Schedule",
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              SizedBox(height: 20),
-              Container(
-                padding: EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: Color(0xFFF4F6FA),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Expanded(
-                      child: _buildButton("Upcoming", 0),
-                    ),
-                    Expanded(
-                      child: _buildButton("Completed", 1),
-                    ),
-                    Expanded(
-                      child: _buildButton("Another", 2),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 30),
-              // Widgets According to buttons
-              _scheduleWidgets[_buttonIndex],
+    return DefaultTabController(
+      length: 2, // Le nombre d'onglets
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text("Vos Réservations"),
+          bottom: TabBar(
+            tabs: [
+              Tab(text: 'À venir'),
+              Tab(text: 'Terminé'),
             ],
           ),
+        ),
+        body: TabBarView(
+          children: [
+            _buildReservationList(
+                isUpcoming: true), // Liste des réservations à venir
+            _buildReservationList(
+                isUpcoming: false), // Liste des réservations terminées
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildButton(String text, int index) {
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _buttonIndex = index;
-        });
+  Widget _buildReservationList({required bool isUpcoming}) {
+    // Création d'un objet Timestamp de l'instant présent
+    Timestamp now = Timestamp.fromDate(DateTime.now());
+
+    // Création de la requête en fonction de l'onglet sélectionné
+    Query<Map<String, dynamic>> reservationsQuery = FirebaseFirestore.instance
+        .collection('reservations')
+        .where('userId', isEqualTo: _user.uid);
+
+    // Si on veut les réservations à venir, on filtre pour celles après maintenant
+    if (isUpcoming) {
+      reservationsQuery = reservationsQuery.where('date', isGreaterThan: now);
+    } else {
+      // Pour les réservations terminées, on filtre pour celles avant maintenant
+      reservationsQuery = reservationsQuery.where('date', isLessThan: now);
+    }
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: reservationsQuery.snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Erreur: ${snapshot.error}'));
+        }
+        if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+          // Filtre supplémentaire pour les dates passées après avoir reçu les données
+          var documents =
+              snapshot.data!.docs.where((DocumentSnapshot document) {
+            Timestamp date = document['date'];
+            return isUpcoming
+                ? date.toDate().isAfter(DateTime.now())
+                : date.toDate().isBefore(DateTime.now());
+          }).toList();
+
+          return ListView.builder(
+            itemCount: documents.length,
+            itemBuilder: (context, index) {
+              DocumentSnapshot document = documents[index];
+              Map<String, dynamic> data =
+                  document.data() as Map<String, dynamic>;
+
+              String doctorId = data['doctorId'];
+              DateTime date;
+              if (data['date'] is Timestamp) {
+                date = (data['date'] as Timestamp).toDate();
+              } else if (data['date'] is String) {
+                date =
+                    DateFormat('your_string_date_format').parse(data['date']);
+              } else {
+                // Handle the case where the date is neither a Timestamp nor a String
+                // You may want to log this case or handle it with an appropriate UI
+                return Text('Invalid date format');
+              }
+
+              String formattedDate = DateFormat('dd/MM/yyyy').format(date);
+              String time = data['time'];
+              String type = data['type'];
+
+              return Card(
+                margin: EdgeInsets.symmetric(vertical: 10),
+                elevation: 2,
+                child: ListTile(
+                  title: FutureBuilder<String>(
+                    future: getDoctorName(doctorId),
+                    builder:
+                        (BuildContext context, AsyncSnapshot<String> snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Text("Chargement du nom...");
+                      } else if (snapshot.hasError) {
+                        return Text("Erreur lors du chargement");
+                      } else {
+                        return Text(snapshot.data!); // Le nom du docteur
+                      }
+                    },
+                  ),
+                  subtitle: Text('$formattedDate à $time - $type'),
+                ),
+              );
+            },
+          );
+        } else {
+          return Center(
+              child: Text(
+                  'Aucune réservation ${isUpcoming ? "à venir" : "terminée"} trouvée'));
+        }
       },
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 12, horizontal: 25),
-        decoration: BoxDecoration(
-          color: _buttonIndex == index ? Color(0xFF7165D6) : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: _buttonIndex == index ? Colors.white : Colors.black38,
-          ),
-        ),
-      ),
     );
   }
 }
