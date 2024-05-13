@@ -3,19 +3,26 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_application_1/components/spachScreen.dart';
+import 'package:flutter_application_1/payment.dart';
 
 import 'package:flutter_application_1/screens/logindoctor.dart';
 import 'package:flutter_application_1/screens/signdoctor.dart';
 
 import 'package:flutter_application_1/widgets/navbar_roots.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await PreferenceUtils.init();
+
+  Stripe.publishableKey =
+      'pk_test_51PB14uIfVECIDkkVM1sL3V02yPEJookC8YtSvSzeXdEbLQSweBvbDhcyRul0UpM7F2Joj6NDfap0n6pmrvrLCHGQ00MjPaJKvZ';
+  await dotenv.load(fileName: "assets/.env");
   runApp(const MyApp());
 }
 
@@ -47,16 +54,6 @@ class _MyAppState extends State<MyApp> {
       home: FirebaseAuth.instance.currentUser == null
           ? SplashScreen()
           : NavBarRoots(),
-      localizationsDelegates: [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ],
-      supportedLocales: [
-        Locale('en', ''),
-        Locale('fr', ''),
-      ],
     );
   }
 }

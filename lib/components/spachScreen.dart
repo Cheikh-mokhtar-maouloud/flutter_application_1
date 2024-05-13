@@ -40,19 +40,19 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset('images/logot.png',
+            Image.asset('images/derniere_Logo.png',
                 width: 250,
                 height: 250), // Changer les dimensions selon vos besoins
             SizedBox(height: 20), // Espace entre l'icône et le texte
-            Text(
-              'Welcome ❤️',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.black87,
-                letterSpacing: .5,
-              ),
-            ),
+            // Text(
+            //   'Welcome ❤️',
+            //   textAlign: TextAlign.center,
+            //   style: TextStyle(
+            //     fontSize: 16,
+            //     color: Colors.black87,
+            //     letterSpacing: .5,
+            //   ),
+            // ),
           ],
         ),
       ),

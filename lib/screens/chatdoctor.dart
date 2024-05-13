@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_application_1/screens/ordonence.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -98,6 +99,22 @@ class _ChatdocState extends State<Chatdoc> {
         .snapshots();
   }
 
+  Future<void> _deleteMessage(String messageId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('messages')
+          .doc(messageId)
+          .delete();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Message supprimé avec succès.')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de la suppression du message.')),
+      );
+    }
+  }
+
   Future<void> _viewPDF(String url) async {
     var response = await http.get(Uri.parse(url));
     var documentDirectory = await getTemporaryDirectory();
@@ -160,6 +177,15 @@ class _ChatdocState extends State<Chatdoc> {
     }
   }
 
+  void _navigateToPrescriptionPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PrescriptionPage(doctorId: _doctorId),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -193,10 +219,12 @@ class _ChatdocState extends State<Chatdoc> {
             child: StreamBuilder<QuerySnapshot>(
                 stream: _chatStream(),
                 builder: (context, snapshot) {
-                  if (snapshot.hasError)
-                    return Text('Error: ${snapshot.error}');
-                  if (snapshot.connectionState == ConnectionState.waiting)
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Erreur: ${snapshot.error}'));
+                  }
+                  if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
+                  }
 
                   var messages = snapshot.data?.docs ?? [];
                   return ListView.builder(
@@ -206,141 +234,186 @@ class _ChatdocState extends State<Chatdoc> {
                       var message =
                           messages[index].data() as Map<String, dynamic>;
                       bool isMe = message['senderId'] == _doctorId;
-                      return Container(
-                        padding:
-                            EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                        margin:
-                            EdgeInsets.symmetric(vertical: 5, horizontal: 8),
-                        alignment:
-                            isMe ? Alignment.centerRight : Alignment.centerLeft,
-                        child: Column(
-                          crossAxisAlignment: isMe
-                              ? CrossAxisAlignment.end
-                              : CrossAxisAlignment.start,
-                          children: [
-                            if (message['imageUrl'] != null)
-                              GestureDetector(
-                                onTap: () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => Scaffold(
-                                        appBar: AppBar(
-                                            title: Text('Image Preview')),
-                                        body: Center(
-                                          child: Image.network(
-                                              message['imageUrl']),
+                      String messageId = messages[index].id;
+
+                      return GestureDetector(
+                        onLongPress: () => _showDeleteDialog(messageId),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 10, horizontal: 15),
+                          margin:
+                              EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+                          alignment: isMe
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
+                          child: Column(
+                            crossAxisAlignment: isMe
+                                ? CrossAxisAlignment.end
+                                : CrossAxisAlignment.start,
+                            children: [
+                              if (message['imageUrl'] != null)
+                                GestureDetector(
+                                  onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => Scaffold(
+                                          appBar: AppBar(
+                                              title: Text('Image Preview')),
+                                          body: Center(
+                                            child: Image.network(
+                                                message['imageUrl']),
+                                          ),
                                         ),
-                                      ),
-                                    )),
-                                child: Image.network(message['imageUrl'],
-                                    width: 150, height: 150),
-                              ),
-                            if (message['fileUrl'] != null)
-                              InkWell(
-                                onTap: () => _viewPDF(message['fileUrl']),
-                                child: Container(
-                                  padding: EdgeInsets.all(10),
+                                      )),
+                                  child: Image.network(message['imageUrl'],
+                                      width: 150, height: 150),
+                                ),
+                              if (message['fileUrl'] != null)
+                                InkWell(
+                                  onTap: () => _viewPDF(message['fileUrl']),
+                                  child: Container(
+                                    padding: EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue[100],
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Icon(Icons.picture_as_pdf,
+                                            size: 50, color: Colors.red),
+                                        Text("Tap to view PDF")
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              if (message['messageText'] != null)
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 25, vertical: 15),
                                   decoration: BoxDecoration(
-                                    color: Colors.blue[100],
-                                    borderRadius: BorderRadius.circular(8),
+                                    color: isMe
+                                        ? Colors.blue[100]
+                                        : Colors.grey[300],
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                  child: Column(
-                                    children: [
-                                      Icon(Icons.picture_as_pdf,
-                                          size: 50, color: Colors.red),
-                                      Text("Tap to view PDF")
-                                    ],
+                                  child: Text(
+                                    message['messageText'],
+                                    style: TextStyle(fontSize: 16),
                                   ),
                                 ),
-                              ),
-                            if (message['messageText'] != null)
-                              Container(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 25, vertical: 15),
-                                decoration: BoxDecoration(
-                                  color: isMe
-                                      ? Colors.blue[100]
-                                      : Colors.grey[300],
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
+                              Padding(
+                                padding: EdgeInsets.only(top: 5),
                                 child: Text(
-                                  message['messageText'],
-                                  style: TextStyle(fontSize: 16),
+                                  DateFormat('dd MMM, hh:mm a').format(
+                                      (message['timestamp'] as Timestamp)
+                                          .toDate()),
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
-                            Padding(
-                              padding: EdgeInsets.only(top: 5),
-                              child: Text(
-                                DateFormat('dd MMM, hh:mm a').format(
-                                    (message['timestamp'] as Timestamp)
-                                        .toDate()),
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     },
                   );
                 }),
           ),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 8.0),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: Icon(Icons.add),
-                  onPressed: () {
-                    showModalBottomSheet(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return Wrap(
-                          children: [
-                            ListTile(
-                              leading: Icon(Icons.photo_library),
-                              title: Text('Send a photo'),
-                              onTap: () {
-                                Navigator.pop(context);
-                                _pickImage();
-                              },
-                            ),
-                            ListTile(
-                              leading: Icon(Icons.picture_as_pdf),
-                              title: Text('Send a PDF'),
-                              onTap: () {
-                                Navigator.pop(context);
-                                _pickFile();
-                              },
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                ),
-                Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    decoration: InputDecoration(
-                      hintText: "Type a message...",
-                      border: InputBorder.none,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.send),
-                  color: Color(0xFF7165D6),
-                  onPressed: () {
-                    if (_messageController.text.trim().isNotEmpty) {
-                      _sendMessage(messageText: _messageController.text.trim());
-                    }
-                  },
-                ),
-              ],
+          _buildBottomSheet(),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteDialog(String messageId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Supprimer le message'),
+          content: Text('Voulez-vous vraiment supprimer ce message?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _deleteMessage(messageId);
+                Navigator.of(context).pop();
+              },
+              child: Text('Supprimer'),
             ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Annuler'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Container _buildBottomSheet() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.0),
+      child: Row(
+        children: [
+          IconButton(
+            icon: Icon(Icons.add),
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                builder: (BuildContext context) {
+                  return Wrap(
+                    children: [
+                      ListTile(
+                        leading: Icon(Icons.photo_library),
+                        title: Text('Send a photo'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          _pickImage();
+                        },
+                      ),
+                      ListTile(
+                        leading: Icon(Icons.picture_as_pdf),
+                        title: Text('Send a PDF'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          _pickFile();
+                        },
+                      ),
+                      ListTile(
+                        leading: Icon(Icons.medical_services),
+                        title: Text('Rédiger une ordonnance'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          _navigateToPrescriptionPage();
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+          Expanded(
+            child: TextField(
+              controller: _messageController,
+              decoration: InputDecoration(
+                hintText: "Type a message...",
+                border: InputBorder.none,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.send),
+            color: Color(0xFF7165D6),
+            onPressed: () {
+              if (_messageController.text.trim().isNotEmpty) {
+                _sendMessage(messageText: _messageController.text.trim());
+              }
+            },
           ),
         ],
       ),

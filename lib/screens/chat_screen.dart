@@ -173,28 +173,39 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     // Vérifiez si la date de la réservation est arrivée.
-    bool reservationDateHasCome =
-        await _checkReservationDate(_userId, widget.doctorId);
-    if (!reservationDateHasCome) {
-      _showAlert('Trop tôt',
-          'La date de votre réservation n\'est pas encore arrivée.');
-      return;
-    }
+    // bool reservationDateHasCome =
+    //     await _checkReservationDate(_userId, widget.doctorId);
+    // if (!reservationDateHasCome) {
+    //   _showAlert('Trop tôt',
+    //       'La date de votre réservation n\'est pas encore arrivée.');
+    //   return;
+    // }
 
-    bool isReservationTimeExceeded =
-        await _checkReservationTimeExceeded(_userId, widget.doctorId);
-    if (isReservationTimeExceeded) {
-      _showAlert('Trop tard',
-          'Vous ne pouvez pas envoyer de message car l\'heure de réservation est dépassée.');
-      return;
-    }
+    // bool isReservationTimeExceeded =
+    //     await _checkReservationTimeExceeded(_userId, widget.doctorId);
+    // if (isReservationTimeExceeded) {
+    //   _showAlert('Trop tard',
+    //       'Vous ne pouvez pas envoyer de message car l\'heure de réservation est dépassée.');
+    //   return;
+    // }
 
     // Continuez avec l'envoi du message si toutes les conditions sont remplies.
     Map<String, dynamic> messageData = {
-      // ... vos autres données de message
+      'senderId': _userId,
+      'receiverId': widget.doctorId,
+      'timestamp': Timestamp.now(),
+      'conversationId': _conversationId,
+      'messageText': messageText,
+      'imageUrl': imageUrl,
+      'fileUrl': fileUrl,
     };
 
-    // Reste de votre code pour l'envoi du message...
+    try {
+      await FirebaseFirestore.instance.collection('messages').add(messageData);
+      _messageController.clear();
+    } catch (e) {
+      print("Erreur lors de l'envoi du message : $e");
+    }
   }
 
   Future<bool> _checkReservationDate(String userId, String doctorId) async {
@@ -217,31 +228,31 @@ class _ChatScreenState extends State<ChatScreen> {
     return DateTime.now().isAfter(reservationDate);
   }
 
-  Future<bool> _checkReservationTimeExceeded(
-      String userId, String doctorId) async {
-    // Récupérez la date et l'heure actuelle
-    DateTime now = DateTime.now();
+  // Future<bool> _checkReservationTimeExceeded(
+  //     String userId, String doctorId) async {
+  //   // Récupérez la date et l'heure actuelle
+  //   DateTime now = DateTime.now();
 
-    // Récupérez la réservation la plus proche ou active pour vérifier l'heure
-    QuerySnapshot reservationSnapshot = await FirebaseFirestore.instance
-        .collection('reservations')
-        .where('userId', isEqualTo: userId)
-        .where('doctorId', isEqualTo: doctorId)
-        .orderBy('date', descending: false)
-        .limit(1)
-        .get();
+  //   // Récupérez la réservation la plus proche ou active pour vérifier l'heure
+  //   QuerySnapshot reservationSnapshot = await FirebaseFirestore.instance
+  //       .collection('reservations')
+  //       .where('userId', isEqualTo: userId)
+  //       .where('doctorId', isEqualTo: doctorId)
+  //       .orderBy('date', descending: false)
+  //       .limit(1)
+  //       .get();
 
-    if (reservationSnapshot.docs.isEmpty) {
-      return true; // Si aucune réservation n'est trouvée, considérez que l'heure est dépassée
-    }
+  //   if (reservationSnapshot.docs.isEmpty) {
+  //     return true; // Si aucune réservation n'est trouvée, considérez que l'heure est dépassée
+  //   }
 
-    var data = reservationSnapshot.docs.first.data() as Map<String, dynamic>;
-    Timestamp reservationTime = data['date'] as Timestamp;
-    DateTime reservationEndTime =
-        reservationTime.toDate().add(Duration(hours: 1));
+  //   var data = reservationSnapshot.docs.first.data() as Map<String, dynamic>;
+  //   Timestamp reservationTime = data['date'] as Timestamp;
+  //   DateTime reservationEndTime =
+  //       reservationTime.toDate().add(Duration(hours: 1));
 
-    return now.isAfter(reservationEndTime);
-  }
+  //   return now.isAfter(reservationEndTime);
+  // }
 
   void _showAlert(String title, String content) {
     showDialog(
@@ -256,6 +267,50 @@ class _ChatScreenState extends State<ChatScreen> {
               onPressed: () {
                 Navigator.of(context).pop(); // Ferme l'alerte
               },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteMessage(String messageId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('messages')
+          .doc(messageId)
+          .delete();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Message supprimé avec succès.')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de la suppression du message.')),
+      );
+    }
+  }
+
+  void _showDeleteDialog(String messageId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Supprimer le message'),
+          content: Text('Voulez-vous vraiment supprimer ce message?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _deleteMessage(messageId);
+                Navigator.of(context).pop();
+              },
+              child: Text('Supprimer'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Annuler'),
             ),
           ],
         );
@@ -348,27 +403,32 @@ class _ChatScreenState extends State<ChatScreen> {
                           isMe);
                     }
 
-                    return Column(
-                      crossAxisAlignment: isMe
-                          ? CrossAxisAlignment.end
-                          : CrossAxisAlignment.start,
-                      children: [
-                        content,
-                        Padding(
-                          padding: EdgeInsets.only(
-                            top: 4,
-                            left: isMe ? 0 : 16,
-                            right: isMe ? 16 : 0,
-                          ),
-                          child: Text(
-                            '$formattedDate $formattedTime',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 12,
+                    return GestureDetector(
+                      onLongPress: () {
+                        _showDeleteDialog(document.id);
+                      },
+                      child: Column(
+                        crossAxisAlignment: isMe
+                            ? CrossAxisAlignment.end
+                            : CrossAxisAlignment.start,
+                        children: [
+                          content,
+                          Padding(
+                            padding: EdgeInsets.only(
+                              top: 4,
+                              left: isMe ? 0 : 16,
+                              right: isMe ? 16 : 0,
+                            ),
+                            child: Text(
+                              '$formattedDate $formattedTime',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 12,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     );
                   },
                 );
@@ -559,7 +619,7 @@ class _ChatScreenState extends State<ChatScreen> {
               child: TextFormField(
                 controller: _messageController,
                 decoration: InputDecoration(
-                  hintText: "Type something...",
+                  hintText: "envoiyer message ...",
                   border: InputBorder.none,
                 ),
               ),

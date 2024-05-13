@@ -13,19 +13,43 @@ class NavBarRoots extends StatefulWidget {
 
 class _NavBarRootsState extends State<NavBarRoots> {
   int _selectedIndex = 0;
-  final _screens = [
-    HomeScreen(),
-    // chatscrennn(),
-    MessagesScreen(),
-    ScheduleScreen(),
-    SettingScreen(),
-  ];
+
+  // Introduce a cache for each screen
+  final Map<int, Widget> _screenCache = {};
 
   @override
   Widget build(BuildContext context) {
+    // Return cached screen if it exists, otherwise create and cache it
+    Widget getCachedScreen(int index) {
+      if (_screenCache.containsKey(index)) {
+        return _screenCache[index]!;
+      } else {
+        Widget newScreen;
+        switch (index) {
+          case 0:
+            newScreen = HomeScreen();
+            break;
+          case 1:
+            newScreen = MessagesScreen();
+            break;
+          case 2:
+            newScreen = ScheduleScreen();
+            break;
+          case 3:
+            newScreen = SettingScreen();
+            break;
+          default:
+            newScreen = HomeScreen(); // Default fallback
+            break;
+        }
+        _screenCache[index] = newScreen; // Cache the screen
+        return newScreen;
+      }
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: _screens[_selectedIndex],
+      body: getCachedScreen(_selectedIndex),
       bottomNavigationBar: Container(
         height: 80,
         child: BottomNavigationBar(

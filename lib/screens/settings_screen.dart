@@ -10,6 +10,7 @@ import 'package:flutter_application_1/screens/home_screen.dart';
 import 'package:flutter_application_1/screens/profil.dart';
 import 'package:flutter_application_1/widgets/navbar_roots.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingScreen extends StatefulWidget {
   @override
@@ -214,13 +215,6 @@ class _SettingScreenState extends State<SettingScreen> {
                 title: Text('English'),
                 onTap: () {
                   // Ici, définissez la logique pour changer la langue en anglais
-                  Navigator.of(context).pop(); // Fermez la boîte de dialogue
-                },
-              ),
-              ListTile(
-                title: Text('العربية'),
-                onTap: () {
-                  // Ici, définissez la logique pour changer la langue en arabe
                   Navigator.of(context).pop(); // Fermez la boîte de dialogue
                 },
               ),
@@ -455,8 +449,13 @@ class _SettingScreenState extends State<SettingScreen> {
                   MaterialPageRoute(
                     builder: (context) => loginScreen(),
                   ),
+
                 );
+
               });
+              SharedPreferences prefs = await SharedPreferences.getInstance();
+              await prefs.clear();
+
             },
             leading: Container(
               padding: EdgeInsets.all(10),
@@ -530,6 +529,5 @@ class L10n {
   static final all = [
     const Locale('en', 'US'),
     const Locale('fr', 'FR'),
-    const Locale('ar', 'SA'),
   ];
 }

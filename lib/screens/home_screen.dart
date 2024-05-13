@@ -8,7 +8,7 @@ import 'package:flutter_application_1/screens/appointment_screen.dart';
 import 'package:flutter_application_1/screens/logindoctor.dart';
 import 'package:flutter_application_1/screens/settings_screen.dart';
 import 'package:flutter_application_1/screens/signdoctor.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -501,8 +501,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         String doctorName =
                             doctorData['Nom'] ?? ''; // Nom du médecin
                         String Evaluation = doctorData['Evaliation'] ?? '';
-                        String adresse =
-                            doctorData['adresse'] ?? ''; // Nom du médecin
+                        String adresse = doctorData['adresse'] ?? '';
+                        String symptoms = doctorData['symptoms'] ?? '';
                         //... (autres attributs)
 
                         return InkWell(
@@ -556,12 +556,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                     mainAxisSize: MainAxisSize.min,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(
-                                        Icons.star,
-                                        color: Colors.amber,
-                                      ),
+                                      // Icon(
+                                      //   Icons.medical_services,
+                                      //   color: Colors.blue,
+                                      // ),
+                                      SizedBox(width: 5),
                                       Text(
-                                        Evaluation.toString(),
+                                        symptoms,
                                         style: TextStyle(
                                           color: Colors.black45,
                                         ),
