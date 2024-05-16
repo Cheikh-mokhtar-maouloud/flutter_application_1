@@ -290,6 +290,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
     );
   }
 
+
   Text DescriptionWidget() {
     return Text(
           selectedDoctor!.description,
@@ -303,6 +304,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         );
   }
+
 
   Row firstRow() {
     return Row(

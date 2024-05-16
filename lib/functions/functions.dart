@@ -14,6 +14,7 @@ import 'package:flutter_application_1/screens/video_call.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FunctionsSDoctor {
@@ -91,6 +92,7 @@ class FunctionsSDoctor {
 
   static void initiateVideoCall(
       BuildContext context, String userId, String patientName) async {
+
      final SharedPreferences prefs = await SharedPreferences.getInstance() ;
 
 DocumentSnapshot<Map<String, dynamic>> userSnapshot = await FirebaseFirestore.instance.collection('users').doc(userId).get();
@@ -110,6 +112,7 @@ if(isvideo==true) {
     ),
   );
 }
+
   }
 
   static void pickFile() async {

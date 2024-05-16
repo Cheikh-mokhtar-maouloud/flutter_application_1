@@ -3,7 +3,7 @@ import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
 
 class CallPage extends StatelessWidget {
   final String userID; // Patient's unique ID
-  final String userName;
+ final String userName;
   final String callID;
 
   // Patient's name
@@ -11,6 +11,9 @@ class CallPage extends StatelessWidget {
   // Constructor to accept userID and userName
   const CallPage({Key? key, required this.userID, required this.userName, required this.callID})
       : super(key: key);
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +25,9 @@ class CallPage extends StatelessWidget {
       userID: userID, // Dynamic userID passed to the widget
       userName: userName, // Dynamic userName passed to the widget
       callID:
+
           callID, // Call ID, ensure it's unique or matches the desired call session
+
       config: ZegoUIKitPrebuiltCallConfig.oneOnOneVideoCall(),
     );
   }

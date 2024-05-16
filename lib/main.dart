@@ -8,6 +8,8 @@ import 'package:flutter_application_1/components/spachScreen.dart';
 
 import 'package:flutter_application_1/Api/firebase_api.dart';
 import 'package:flutter_application_1/screens/home_screen.dart';
+import 'package:flutter_application_1/screens/signdoctor.dart';
+
 
 import 'package:flutter_application_1/widgets/navbar_roots.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -21,6 +23,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await PreferenceUtils.init();
+
 
 AwesomeNotifications().initialize(
     null,
@@ -39,6 +42,21 @@ AwesomeNotifications().initialize(
     ]
 
   );
+
+  AwesomeNotifications().initialize(null, [
+    NotificationChannel(
+      channelKey: 'basic_channel',
+      channelName: 'Basic notifications',
+      channelDescription: 'Notification channel for basic tests',
+      defaultColor: Color(0xFF9D50DD),
+      ledColor: Colors.white,
+      importance: NotificationImportance.Max,
+      locked: true,
+      playSound: true,
+      defaultRingtoneType: DefaultRingtoneType.Notification,
+    )
+  ]);
+
   await FirebaseMessaging.instance.getInitialMessage();
   await FirebaseApi().initNotification();
   Stripe.publishableKey =
@@ -82,7 +100,9 @@ class _MyAppState extends State<MyApp> {
       navigatorKey: navigatorKey,
       home: FirebaseAuth.instance.currentUser == null
           ? SplashScreen()
-          : NavBarRoots(),
+
+          : SignUpScreendoc(),
+
       routes: {
         HomeScreen.route: (context) => HomeScreen(),
       },
