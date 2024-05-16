@@ -45,7 +45,7 @@ dependencies:
   firebase_messaging: ^14.7.16
   google_sign_in: ^6.2.1
   the_apple_sign_in: ^1.1.1
-  file_picker: ^8.0.0+1
+  file_picker: ^6.2.1
   shared_preferences: ^2.0.13
   cached_network_image: ^3.3.1
   image_picker: ^0.8.6
@@ -69,6 +69,10 @@ dependencies:
   # cloud_functions: ^3.3.0
   # agora_rtc_engine: ^5.2.0
   # permission_handler: ^8.0.0
+  zego_uikit_prebuilt_call: ^4.2.1
+  pdf: ^3.10.8
+  get_it: ^7.7.0
+  awesome_notifications: ^0.8.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

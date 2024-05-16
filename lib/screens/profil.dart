@@ -1,37 +1,3 @@
-// import 'package:flutter/cupertino.dart';
-// import 'package:flutter/material.dart';
-// import 'package:flutter_application_1/Api/Api.dart';
-// import 'package:flutter_application_1/screens/chatUser.dart';
-// import 'package:google_sign_in/google_sign_in.dart';
-
-// class profil extends StatefulWidget {
-//   final ChatUser user;
-//   const profil({super.key, required this.user});
-
-//   @override
-//   State<profil> createState() => _profilState();
-// }
-
-// class _profilState extends State<profil> {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text("Profile Screnn"),
-//       ),
-//       floatingActionButton: Padding(
-//         padding: const EdgeInsets.only(bottom: 10),
-//         child: FloatingActionButton(
-//           onPressed: () async {
-//             await Apis.auth.signOut();
-//             await GoogleSignIn().signOut();
-//           },
-//           child: const Icon(Icons.add_comment_rounded),
-//         ),
-//       ),
-//     );
-//   }
-// }
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';

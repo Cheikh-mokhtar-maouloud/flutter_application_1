@@ -13,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
+  static const route = '/HomeScreen';
   _HomeScreenState createState() => _HomeScreenState();
 }
 
@@ -255,114 +256,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-
-              // SizedBox(height: 5),
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              //   children: [
-              //     InkWell(
-              //       onTap: () {},
-              //       child: Container(
-              //         width: 360,
-              //         padding: EdgeInsets.all(20),
-              //         decoration: BoxDecoration(
-              //           color: Color(0xFF7165D6),
-              //           borderRadius: BorderRadius.circular(10),
-              //           boxShadow: [
-              //             BoxShadow(
-              //               color: Colors.black12,
-              //               blurRadius: 6,
-              //               spreadRadius: 4,
-              //             ),
-              //           ],
-              //         ),
-              //         child: Column(
-              //           crossAxisAlignment: CrossAxisAlignment.start,
-              //           children: [
-              //             Container(
-              //               padding: EdgeInsets.all(8),
-              //               decoration: BoxDecoration(
-              //                 color: Colors.white,
-              //                 shape: BoxShape.circle,
-              //               ),
-              //               child: Icon(
-              //                 Icons.add,
-              //                 color: Color(0xFF7165D6),
-              //                 size: 35,
-              //               ),
-              //             ),
-              //             SizedBox(height: 30),
-              //             Text(
-              //               "Clinic Visit",
-              //               style: TextStyle(
-              //                 fontSize: 18,
-              //                 color: Colors.white,
-              //                 fontWeight: FontWeight.w500,
-              //               ),
-              //             ),
-              //             SizedBox(height: 5),
-              //             Text(
-              //               "Make an appointment",
-              //               style: TextStyle(
-              //                 color: Colors.white54,
-              //               ),
-              //             ),
-              //           ],
-              //         ),
-              //       ),
-              //     ),
-              //     // InkWell(
-              //     //   onTap: () {},
-              //     //   child: Container(
-              //     //     padding: EdgeInsets.all(20),
-              //     //     decoration: BoxDecoration(
-              //     //       color: Colors.white,
-              //     //       borderRadius: BorderRadius.circular(10),
-              //     //       boxShadow: [
-              //     //         BoxShadow(
-              //     //           color: Colors.black12,
-              //     //           blurRadius: 6,
-              //     //           spreadRadius: 4,
-              //     //         ),
-              //     //       ],
-              //     //     ),
-              //     //     child: Column(
-              //     //       crossAxisAlignment: CrossAxisAlignment.start,
-              //     //       children: [
-              //     //         Container(
-              //     //           padding: EdgeInsets.all(8),
-              //     //           decoration: BoxDecoration(
-              //     //             color: Color(0xFFF0EEFA),
-              //     //             shape: BoxShape.circle,
-              //     //           ),
-              //     //           child: Icon(
-              //     //             Icons.home_filled,
-              //     //             color: Color(0xFF7165D6),
-              //     //             size: 35,
-              //     //           ),
-              //     //         ),
-              //     //         SizedBox(height: 30),
-              //     //         Text(
-              //     //           "Home Visit",
-              //     //           style: TextStyle(
-              //     //             fontSize: 18,
-              //     //             color: Colors.black,
-              //     //             fontWeight: FontWeight.w500,
-              //     //           ),
-              //     //         ),
-              //     //         SizedBox(height: 5),
-              //     //         Text(
-              //     //           "Call the doctor home",
-              //     //           style: TextStyle(
-              //     //             color: Colors.black54,
-              //     //           ),
-              //     //         ),
-              //     //       ],
-              //     //     ),
-              //     //   ),
-              //     // ),
-              //   ],
-              // ),
               SizedBox(height: 5),
               Center(
                 child: Container(
@@ -460,8 +353,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               Center(
                 child: StreamBuilder<QuerySnapshot>(
-                  // Assurez-vous que le nom du champ correspond exactement à celui de votre base de données Firestore.
-                  // De plus, utilisez `arrayContains` si le champ est un tableau ou `isEqualTo` si c'est une chaîne de caractères.
                   stream: selectedSymptom.isEmpty
                       ? FirebaseFirestore.instance
                           .collection('doctors')
@@ -528,7 +419,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(10),
-                              boxShadow: [
+                              boxShadow: const [
                                 BoxShadow(
                                   color: Colors.black12,
                                   blurRadius: 4,
@@ -551,24 +442,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                     color: Colors.black54,
                                   ),
                                 ),
-                                if (Evaluation != null)
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      // Icon(
-                                      //   Icons.medical_services,
-                                      //   color: Colors.blue,
-                                      // ),
-                                      SizedBox(width: 5),
-                                      Text(
-                                        symptoms,
-                                        style: TextStyle(
-                                          color: Colors.black45,
-                                        ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(width: 5),
+                                    Text(
+                                      symptoms,
+                                      style: TextStyle(
+                                        color: Colors.black45,
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
+                                ),
                               ],
                             ),
                           ),
@@ -608,123 +494,3 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-
-
-/*
-StreamBuilder<QuerySnapshot>(
-                stream: selectedSymptom == ''
-                    ? FirebaseFirestore.instance
-                        .collection('doctors')
-                        .snapshots()
-                    : FirebaseFirestore.instance
-                        .collection('doctors')
-                        .where('Specialite', isEqualTo: selectedSymptom)
-                        .snapshots(),
-                builder: (BuildContext context,
-                    AsyncSnapshot<QuerySnapshot> snapshot) {
-                  if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  }
-
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator();
-                  }
-
-                  return Center(
-                    child: Wrap(
-                      spacing: 20,
-                      runSpacing: 20,
-                      children:
-                          snapshot.data!.docs.map((DocumentSnapshot document) {
-                        final doctorData = document.data() as Map<String,
-                            dynamic>; // Convertir en Map<String, dynamic>
-                        if (doctorData != null) {
-                          // Vérifiez si les données du médecin ne sont pas nulles
-                          final doctorImg = doctorData['Image'] ??
-                              ''; // Assurez-vous de gérer les valeurs null
-                          final doctorName = doctorData['Nom'] ??
-                              ''; // Assurez-vous de gérer les valeurs null
-                          final rating = doctorData['Evaluation'] ?? '';
-                          // Assurez-vous de gérer les valeurs null
-
-                          // Utilisez les données du médecin ici
-                          return InkWell(
-                            onTap: () async {
-                              List<Map<String, dynamic>> allDoctors =
-                                  await _getAllDoctors();
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => AppointmentScreen(
-                                    doctorId: document.id,
-                                    doctorImg: doctorImg,
-                                    doctorName: doctorName,
-                                    rating: rating,
-                                    allDoctors: allDoctors,
-                                  ),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              width: MediaQuery.of(context).size.width * 0.4,
-                              padding: EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 4,
-                                    spreadRadius: 2,
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  CircleAvatar(
-                                    radius: 35,
-                                    backgroundImage: NetworkImage(doctorImg),
-                                  ),
-                                  Text(
-                                    doctorName,
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.black54,
-                                    ),
-                                  ),
-                                  if (rating != null)
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.star,
-                                          color: Colors.amber,
-                                        ),
-                                        Text(
-                                          rating.toString(),
-                                          style: TextStyle(
-                                            color: Colors.black45,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                ],
-                              ),
-                            ),
-                          );
-                        } else {
-                          return SizedBox(); // Retourne un widget vide si les données sont nulles
-                        }
-                      }).toList(),
-                    ),
-                  );
-                },
-              ),
-
-
- */

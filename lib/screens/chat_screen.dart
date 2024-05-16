@@ -1,14 +1,18 @@
 import 'dart:io';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_application_1/Api/homePageApi/homePageApi.dart';
+import 'package:flutter_application_1/components/dialogs.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
 
 // import 'package:fluttertoast/fluttertoast.dart';
 
@@ -44,6 +48,8 @@ class _ChatScreenState extends State<ChatScreen> {
     _checkAndNavigate();
     _initConversation();
     _createOrGetConversation();
+    FirebaseMessaging.instance.requestPermission();
+    FirebaseMessaging.onMessage.listen(_handleMessage);
   }
 
   void _createOrGetConversation() {
@@ -60,28 +66,10 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() {});
   }
 
-  Stream<QuerySnapshot> _chatStream() {
-    return FirebaseFirestore.instance
-        .collection('messages')
-        .where('conversationId', isEqualTo: _conversationId)
-        .orderBy('timestamp', descending: true)
-        .snapshots();
-  }
-
   @override
   void dispose() {
     _messageController.dispose();
     super.dispose();
-  }
-
-  Future<bool> checkReservation(String userId, String doctorId) async {
-    QuerySnapshot reservationSnapshot = await FirebaseFirestore.instance
-        .collection('reservations')
-        .where('userId', isEqualTo: userId)
-        .where('doctorId', isEqualTo: doctorId)
-        .get();
-
-    return reservationSnapshot.docs.isNotEmpty;
   }
 
   Future<void> _uploadImageFile(File imageFile) async {
@@ -101,32 +89,11 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _checkAndNavigate() async {
     bool hasReservation = await _hasActiveReservation(_userId, widget.doctorId);
-    print(_userId);
-    print(widget.doctorId);
+
     if (!hasReservation) {
       // Si pas de réservation, on affiche une alerte puis on retourne à l'écran précédent après la fermeture de l'alerte.
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        showDialog(
-          context: context,
-          barrierDismissible:
-              false, // L'utilisateur doit appuyer sur le bouton pour fermer le dialogue.
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Erreur'),
-              content: Text(
-                  'Vous devez avoir une réservation avec ce médecin pour accéder au chat.'),
-              actions: <Widget>[
-                ElevatedButton(
-                  child: Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Ferme l'AlertDialog
-                    Navigator.of(context).pop(); // Retourne à l'écran précédent
-                  },
-                ),
-              ],
-            );
-          },
-        );
+        dialogresev(context);
       });
     } else {
       // S'il y a une réservation, on initialise le conversationId et on met à jour l'état pour afficher le chat.
@@ -165,29 +132,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
     // Avant d'envoyer le message, vérifiez si l'utilisateur a une réservation
     // et si la date de la réservation est arrivée.
-    bool hasReservation = await checkReservation(_userId, widget.doctorId);
+    bool hasReservation =
+        await HomePageApi.checkReservation(_userId, widget.doctorId);
     if (!hasReservation) {
       _showAlert('Pas de réservation',
           'Vous devez avoir une réservation pour envoyer un message.');
       return;
     }
-
-    // Vérifiez si la date de la réservation est arrivée.
-    // bool reservationDateHasCome =
-    //     await _checkReservationDate(_userId, widget.doctorId);
-    // if (!reservationDateHasCome) {
-    //   _showAlert('Trop tôt',
-    //       'La date de votre réservation n\'est pas encore arrivée.');
-    //   return;
-    // }
-
-    // bool isReservationTimeExceeded =
-    //     await _checkReservationTimeExceeded(_userId, widget.doctorId);
-    // if (isReservationTimeExceeded) {
-    //   _showAlert('Trop tard',
-    //       'Vous ne pouvez pas envoyer de message car l\'heure de réservation est dépassée.');
-    //   return;
-    // }
 
     // Continuez avec l'envoi du message si toutes les conditions sont remplies.
     Map<String, dynamic> messageData = {
@@ -226,6 +177,54 @@ class _ChatScreenState extends State<ChatScreen> {
     DateTime reservationDate = (data['date'] as Timestamp).toDate();
 
     return DateTime.now().isAfter(reservationDate);
+  }
+
+  void _handleMessage(RemoteMessage message) {
+    if (message.data['type'] == 'video_call') {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Appel vidéo entrant'),
+            content: Text(
+                'Vous recevez un appel vidéo de ${message.data['callerName']}'),
+            actions: <Widget>[
+              ElevatedButton(
+                child: Text('Accepter'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _joinCall(message.data['12']);
+                },
+              ),
+              ElevatedButton(
+                child: Text('Refuser'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  void _joinCall(String callID) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ZegoUIKitPrebuiltCall(
+          appID: 1501130655,
+          appSign:
+              "498caad4a94c78410e4434f1cf96281868d4159e701e955d0c771b35c25c25d0",
+          userID: _userId,
+          userName: 'fatimetou', // Change this to the actual user's name
+          callID: '12',
+          config: ZegoUIKitPrebuiltCallConfig.oneOnOneVideoCall(),
+        ),
+      ),
+    );
   }
 
   // Future<bool> _checkReservationTimeExceeded(
@@ -362,7 +361,7 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: _chatStream(),
+              stream: HomePageApi.chatStream(_conversationId!),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return Center(
@@ -373,6 +372,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 }
 
                 // Convertir les données en liste de Widgets pour l'affichage
+
                 return ListView.builder(
                   reverse: true,
                   itemCount: snapshot.data?.docs.length ?? 0,

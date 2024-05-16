@@ -223,6 +223,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               imageUrl, // Assurez-vous que l'URL de l'image est incluse ici
           "description": description,
           "birthDate": birthDate,
+          "deviceId": []
         });
 
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
