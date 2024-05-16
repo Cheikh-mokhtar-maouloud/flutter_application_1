@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_application_1/model/Chatuser.dart';
 import 'package:flutter_application_1/screens/chatUser.dart';
 
 class Apis {

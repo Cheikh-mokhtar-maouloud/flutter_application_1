@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/Api/homePageApi/homePageApi.dart';
 import 'package:flutter_application_1/screens/appointment_screen.dart';
 
 class AllDoctorsScreen extends StatefulWidget {
@@ -36,13 +37,7 @@ class _AllDoctorsScreenState extends State<AllDoctorsScreen> {
           ),
           Expanded(
               child: StreamBuilder<QuerySnapshot>(
-            stream: (searchQuery.isEmpty)
-                ? FirebaseFirestore.instance.collection('doctors').snapshots()
-                : FirebaseFirestore.instance
-                    .collection('doctors')
-                    .where('Nom', isGreaterThanOrEqualTo: searchQuery)
-                    .where('Nom', isLessThanOrEqualTo: searchQuery + '\uf8ff')
-                    .snapshots(),
+            stream: HomePageApi.getAlldoctors(searchQuery),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Center(child: CircularProgressIndicator());
@@ -70,33 +65,7 @@ class _AllDoctorsScreenState extends State<AllDoctorsScreen> {
                   Map<String, dynamic> docData =
                       docSnapshot.data() as Map<String, dynamic>;
 
-                  return ListTile(
-                    onTap: () {
-                      // Utilisez 'docId' pour l'ID du médecin
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AppointmentScreen(
-                            doctorId: docSnapshot.id,
-                            doctorImg: docData['Image'],
-                            doctorName: docData['Nom'],
-                            rating: docData['Evaluation'],
-                            allDoctors: [], // ou passez la liste complète si nécessaire
-                            // Ajoutez l'adresse ici
-                            doctorAddress: docData[
-                                'adresse'], // Assurez-vous que 'adresse' correspond au champ Firestore
-                          ),
-                        ),
-                      );
-                    },
-                    // Utilisez 'docData' pour accéder aux autres données du document
-                    leading: CircleAvatar(
-                      backgroundImage: NetworkImage(docData['Image']),
-                    ),
-                    title: Text(docData['Nom']),
-                    subtitle: Text(
-                        'Évaluation: ${docData['Evaluation']?.toString() ?? 'Not rated'}'),
-                  );
+                  return listTileDoctors(context, docSnapshot, docData);
                 },
               );
 // ...
@@ -104,6 +73,37 @@ class _AllDoctorsScreenState extends State<AllDoctorsScreen> {
           )),
         ],
       ),
+    );
+  }
+
+  ListTile listTileDoctors(BuildContext context,
+      DocumentSnapshot<Object?> docSnapshot, Map<String, dynamic> docData) {
+    return ListTile(
+      onTap: () {
+        // Utilisez 'docId' pour l'ID du médecin
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AppointmentScreen(
+              doctorId: docSnapshot.id,
+              doctorImg: docData['Image'],
+              doctorName: docData['Nom'],
+              rating: docData['Evaluation'],
+              allDoctors: [], // ou passez la liste complète si nécessaire
+              // Ajoutez l'adresse ici
+              doctorAddress: docData[
+                  'adresse'], // Assurez-vous que 'adresse' correspond au champ Firestore
+            ),
+          ),
+        );
+      },
+      // Utilisez 'docData' pour accéder aux autres données du document
+      leading: CircleAvatar(
+        backgroundImage: NetworkImage(docData['Image']),
+      ),
+      title: Text(docData['Nom']),
+      subtitle: Text(
+          'Évaluation: ${docData['Evaluation']?.toString() ?? 'Not rated'}'),
     );
   }
 }
