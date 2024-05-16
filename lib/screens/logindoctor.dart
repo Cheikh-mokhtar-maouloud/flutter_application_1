@@ -23,7 +23,9 @@ class _LoginScreenState extends State<Login> {
 
       User? user = userCredential.user;
       if (user != null) {
-        print("Utilisateur connecté: ${user.uid}");
+
+
+
 
         // Ici, ajoutez une logique pour vérifier si l'utilisateur est un médecin
         // Pour l'exemple, nous allons supposer que tous les utilisateurs sont des médecins

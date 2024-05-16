@@ -14,6 +14,7 @@ import 'package:flutter_application_1/screens/video_call.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FunctionsSDoctor {
   static Future<void> viewPDF(String url, BuildContext context) async {
@@ -90,19 +91,25 @@ class FunctionsSDoctor {
 
   static void initiateVideoCall(
       BuildContext context, String userId, String patientName) async {
-String? token =await FirebaseMessaging.instance.getToken();
-FirebaseApi.sendAndroidNotification();
-log('Token: $token');
-    // Initier l'appel vidéo
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CallPage(
-          userID: userId,
-          userName: patientName,
-        ),
-      ),
-    );
+     final SharedPreferences prefs = await SharedPreferences.getInstance() ;
+
+DocumentSnapshot<Map<String, dynamic>> userSnapshot = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+log(userSnapshot.data()!['deviceId']);
+FirebaseApi.sendAndroidNotification("wants to video call you", patientName, userId, userSnapshot.data()!['deviceId']);
+final isvideo=await prefs.getBool('isVideoCall');
+if(isvideo==true) {
+  // Initier l'appel vidéo
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) =>
+          CallPage(
+            userID: userId,
+            userName: patientName, callID: "1234",
+          ),
+    ),
+  );
+}
   }
 
   static void pickFile() async {

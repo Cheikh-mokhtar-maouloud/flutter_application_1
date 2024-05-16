@@ -199,15 +199,9 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "À propos de médecin",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
+          proposdemedecinWidget(),
           SizedBox(height: 10),
-          Text(
-            selectedDoctor!.description,
-            style: TextStyle(fontSize: 16, color: Colors.black87),
-          ),
+          DescriptionWidget(),
           SizedBox(height: 20),
           firstRow(),
           SizedBox(height: 20),
@@ -294,6 +288,20 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
         ],
       ),
     );
+  }
+
+  Text DescriptionWidget() {
+    return Text(
+          selectedDoctor!.description,
+          style: TextStyle(fontSize: 16, color: Colors.black87),
+        );
+  }
+
+  Text proposdemedecinWidget() {
+    return Text(
+          "À propos de médecin",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        );
   }
 
   Row firstRow() {

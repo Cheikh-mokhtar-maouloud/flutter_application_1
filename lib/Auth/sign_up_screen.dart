@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter_application_1/Auth/service/image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -34,35 +36,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _formkey = GlobalKey<FormState>();
   String? imageUrl;
 
-  // Importez le package flutter_image_compress
-
-  // Future<void> _uploadImage(XFile? image) async {
-  //   if (image != null) {
-  //     // Compressez l'image avant le téléchargement
-  //     var compressedFile = await FlutterImageCompress.compressAndGetFile(
-  //       image.path,
-  //       '/tmp/${DateTime.now().millisecondsSinceEpoch}.jpg',
-  //       quality: 50, // Ajustez la qualité comme nécessaire
-  //     );
-
-  //     if (compressedFile != null) {
-  //       String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-  //       Reference storageReference =
-  //           FirebaseStorage.instance.ref().child('profile_images/$fileName');
-
-  //       UploadTask uploadTask = storageReference.putFile(compressedFile);
-
-  //       // Utilisez l'URL temporairement pour l'opération d'enregistrement
-  //       uploadTask.then((TaskSnapshot taskSnapshot) async {
-  //         String downloadUrl = await taskSnapshot.ref.getDownloadURL();
-  //         _saveUserData(
-  //             downloadUrl); // Méthode pour enregistrer les données utilisateur
-  //       }).catchError((error) {
-  //         print(error); // Gérer l'erreur
-  //       });
-  //     }
-  //   }
-  // }
 
   void _saveUserData(String imageUrl) async {
     // Ici, vous enregistrez les données utilisateur en utilisant l'URL de l'image
@@ -115,23 +88,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 GestureDetector(
                   child: const Text('Caméra'),
                   onTap: () async {
-                    Navigator.of(context).pop();
-                    final XFile? image =
-                        await _picker.pickImage(source: ImageSource.camera);
-                    if (image != null) {
-                      File file = File(image.path);
-                      String fileName =
-                          DateTime.now().millisecondsSinceEpoch.toString();
-                      Reference reference = FirebaseStorage.instance
-                          .ref()
-                          .child('profile_images/$fileName');
-                      UploadTask uploadTask = reference.putFile(file);
-                      TaskSnapshot storageTaskSnapshot =
-                          await uploadTask.whenComplete(() {});
-                      String downloadUrl =
-                          await storageTaskSnapshot.ref.getDownloadURL();
-                      imageUrl = downloadUrl;
-                    }
+                    await ExtractImage(context, _picker,imageUrl);
                     // _uploadImage(image);
                   },
                 ),
@@ -139,23 +96,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 GestureDetector(
                   child: const Text('Galerie'),
                   onTap: () async {
-                    Navigator.of(context).pop();
-                    final XFile? image =
-                        await _picker.pickImage(source: ImageSource.gallery);
-                    if (image != null) {
-                      File file = File(image.path);
-                      String fileName =
-                          DateTime.now().millisecondsSinceEpoch.toString();
-                      Reference reference = FirebaseStorage.instance
-                          .ref()
-                          .child('profile_images/$fileName');
-                      UploadTask uploadTask = reference.putFile(file);
-                      TaskSnapshot storageTaskSnapshot =
-                          await uploadTask.whenComplete(() {});
-                      String downloadUrl =
-                          await storageTaskSnapshot.ref.getDownloadURL();
-                      imageUrl = downloadUrl;
-                    }
+                    await GaleriePicker(context, _picker);
                     // _uploadImage(image);
                   },
                 ),
@@ -167,13 +108,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  void _handleImageSelection(XFile? image) async {
+  Future<void> GaleriePicker(BuildContext context, ImagePicker _picker) async {
+     Navigator.of(context).pop();
+    final XFile? image =
+        await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       File file = File(image.path);
-      // Faites ce que vous voulez avec le fichier ici,
-      // comme l'upload sur Firebase Storage ou autre...
+      String fileName =
+          DateTime.now().millisecondsSinceEpoch.toString();
+      Reference reference = FirebaseStorage.instance
+          .ref()
+          .child('profile_images/$fileName');
+      UploadTask uploadTask = reference.putFile(file);
+      TaskSnapshot storageTaskSnapshot =
+          await uploadTask.whenComplete(() {});
+      String downloadUrl =
+          await storageTaskSnapshot.ref.getDownloadURL();
+      imageUrl = downloadUrl;
     }
   }
+
+
 
   registration() async {
     String email = _emailTextController.text;
@@ -207,6 +162,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         phone.isNotEmpty &&
         address.isNotEmpty) {
       try {
+        final token= await FirebaseMessaging.instance.getToken();
         UserCredential userCredential = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(email: email, password: password);
         // Assurez-vous que imageUrl est correctement défini
@@ -223,7 +179,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               imageUrl, // Assurez-vous que l'URL de l'image est incluse ici
           "description": description,
           "birthDate": birthDate,
-          "deviceId": []
+          "deviceId": token
         });
 
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -274,259 +230,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 ),
                 SizedBox(height: 10),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: TextFormField(
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please Entre Name';
-                      }
-                      return null;
-                    },
-                    controller: _nameTextController,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15.0),
-                      ),
-                      labelText: "Entrer Full Name",
-                      prefixIcon: Icon(Icons.person),
-                    ),
-                    onTap: () {
-                      setState(() {
-                        passToggle = !passToggle;
-                      });
-                    },
-                  ),
-                ),
+                usernamewidget(),
                 SizedBox(height: 10),
-
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: GestureDetector(
-                    onTap:
-                        _presentDatePicker, // Appel de la méthode pour ouvrir le DatePicker
-                    child: AbsorbPointer(
-                      child: TextFormField(
-                        controller: _birthdateTextController,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15.0),
-                          ),
-                          labelText: "Enter Date de naissance",
-                          prefixIcon: Icon(Icons.cake),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please Enter Birthdate';
-                          } else if (selectedBirthDate == null ||
-                              !_isAgeValid(selectedBirthDate!)) {
-                            return 'Vous devez avoir au moins 15 ans pour vous inscrire.';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-
+                Datenaissencewedjet(),
                 SizedBox(height: 10),
-
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: TextFormField(
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please Entre Email';
-                      }
-                      return null;
-                    },
-                    controller: _emailTextController,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15.0),
-                      ),
-                      labelText: "Entrer Email",
-                      prefixIcon: Icon(Icons.email),
-                    ),
-                    onTap: () {
-                      setState(() {
-                        passToggle = !passToggle;
-                      });
-                    },
-                  ),
-                ),
-
+                Emailwedget(),
                 SizedBox(height: 10),
-
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: TextFormField(
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please Entre Password';
-                      }
-                      return null;
-                    },
-                    controller: _passwordTextController,
-                    obscureText: passToggle,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15.0),
-                      ),
-                      labelText: "Entrer Password",
-                      prefixIcon: Icon(Icons.lock),
-                      suffixIcon: IconButton(
-                        onPressed: () {
-                          setState(() {
-                            passToggle = !passToggle;
-                          });
-                        },
-                        icon: Icon(
-                          passToggle ? Icons.visibility_off : Icons.visibility,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
+                PasswordWedget(),
                 SizedBox(height: 10),
-
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: TextFormField(
-                    controller: _phoneTextController,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15.0),
-                      ),
-                      labelText: "Entrer Phone Number",
-                      prefixIcon: Icon(Icons.phone),
-                    ),
-                    keyboardType: TextInputType.phone,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please Enter Phone Number';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
+                Phonewedget(),
                 SizedBox(height: 10),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: TextFormField(
-                    controller: _descriptionTextController,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15.0),
-                      ),
-                      labelText: "Entrer Description",
-                      prefixIcon: Icon(Icons.description),
-                    ),
-                    maxLength: 135, // Limite la description à 120 caractères
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please Enter Description';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-
+                Descriptionwedget(),
                 SizedBox(height: 10),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                      labelText: "Entrer Adress",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15.0),
-                      ),
-                    ),
-                    value: addresses.isNotEmpty ? addresses.first : null,
-                    onChanged: (value) {
-                      setState(() {
-                        _addressTextController.text = value!;
-                      });
-                    },
-                    items: addresses.map((address) {
-                      return DropdownMenuItem<String>(
-                        value: address,
-                        child: Text(address),
-                      );
-                    }).toList(),
-                  ),
-                ),
-
+                AdressWedget(),
                 SizedBox(height: 10),
-
-                // Bouton pour ajouter la photo
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: ElevatedButton(
-                    onPressed: _showImageSourceSelection,
-                    child: Text('Ajouter une photo'),
-                  ),
-                ),
-
+                PhotoWedget(),
                 SizedBox(height: 20),
-
-                button(
-                  title: "Create Account",
-                  onTap: () async {
-                    // Vérifier d'abord si l'image est téléchargée avec succès
-                    // await _uploadImage();
-                    // Ensuite, enregistrer l'utilisateur uniquement si l'image est téléchargée
-                    if (imageUrl != null && _formkey.currentState!.validate()) {
-                      registration();
-                    } else {
-                      // Afficher un message d'erreur si l'image n'est pas téléchargée
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          backgroundColor: Colors.red,
-                          content: Text(
-                            "Please upload an image before registering.",
-                            style: TextStyle(fontSize: 18.0),
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                ),
-
-                // SizedBox(height: 5),
-
-                SizedBox(
-                  height: 15.0,
-                ),
+                CreatacountWedget(context),
+                SizedBox(height: 15),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      "Already have an account? ",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => loginScreen(),
-                          ),
-                        );
-                      },
-                      child: Text(
-                        "Log In",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF7165D6),
-                        ),
-                      ),
-                    ),
+                    AlreadyhaveanaccountWidget(),
+                    LoginWidget(context),
                   ],
                 ),
               ],
@@ -535,5 +261,261 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
       ),
     );
+  }
+
+  TextButton LoginWidget(BuildContext context) {
+    return TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => loginScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      "Log In",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF7165D6),
+                      ),
+                    ),
+                  );
+  }
+
+  Text AlreadyhaveanaccountWidget() {
+    return Text(
+                    "Already have an account? ",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  );
+  }
+
+  button CreatacountWedget(BuildContext context) {
+    return button(
+                title: "Create Account",
+                onTap: () async {
+                  // Vérifier d'abord si l'image est téléchargée avec succès
+                  // await _uploadImage();
+                  // Ensuite, enregistrer l'utilisateur uniquement si l'image est téléchargée
+                  if (imageUrl != null && _formkey.currentState!.validate()) {
+                    registration();
+                  } else {
+                    // Afficher un message d'erreur si l'image n'est pas téléchargée
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: Colors.red,
+                        content: Text(
+                          "Please upload an image before registering.",
+                          style: TextStyle(fontSize: 18.0),
+                        ),
+                      ),
+                    );
+                  }
+                },
+              );
+  }
+
+  Padding PhotoWedget() {
+    return Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: ElevatedButton(
+                  onPressed: _showImageSourceSelection,
+                  child: Text('Ajouter une photo'),
+                ),
+              );
+  }
+
+  Padding AdressWedget() {
+    return Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: "Entrer Adress",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                    ),
+                  ),
+                  value: addresses.isNotEmpty ? addresses.first : null,
+                  onChanged: (value) {
+                    setState(() {
+                      _addressTextController.text = value!;
+                    });
+                  },
+                  items: addresses.map((address) {
+                    return DropdownMenuItem<String>(
+                      value: address,
+                      child: Text(address),
+                    );
+                  }).toList(),
+                ),
+              );
+  }
+
+  Padding Descriptionwedget() {
+    return Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: TextFormField(
+                  controller: _descriptionTextController,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                    ),
+                    labelText: "Entrer Description",
+                    prefixIcon: Icon(Icons.description),
+                  ),
+                  maxLength: 135, // Limite la description à 120 caractères
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please Enter Description';
+                    }
+                    return null;
+                  },
+                ),
+              );
+  }
+
+  Padding Phonewedget() {
+    return Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: TextFormField(
+                  controller: _phoneTextController,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                    ),
+                    labelText: "Entrer Phone Number",
+                    prefixIcon: Icon(Icons.phone),
+                  ),
+                  keyboardType: TextInputType.phone,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please Enter Phone Number';
+                    }
+                    return null;
+                  },
+                ),
+              );
+  }
+
+  Padding PasswordWedget() {
+    return Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: TextFormField(
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please Entre Password';
+                    }
+                    return null;
+                  },
+                  controller: _passwordTextController,
+                  obscureText: passToggle,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                    ),
+                    labelText: "Entrer Password",
+                    prefixIcon: Icon(Icons.lock),
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          passToggle = !passToggle;
+                        });
+                      },
+                      icon: Icon(
+                        passToggle ? Icons.visibility_off : Icons.visibility,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+  }
+
+  Padding Emailwedget() {
+    return Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: TextFormField(
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please Entre Email';
+                    }
+                    return null;
+                  },
+                  controller: _emailTextController,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                    ),
+                    labelText: "Entrer Email",
+                    prefixIcon: Icon(Icons.email),
+                  ),
+                  onTap: () {
+                    setState(() {
+                      passToggle = !passToggle;
+                    });
+                  },
+                ),
+              );
+  }
+
+  Padding Datenaissencewedjet() {
+    return Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: GestureDetector(
+                  onTap:
+                      _presentDatePicker, // Appel de la méthode pour ouvrir le DatePicker
+                  child: AbsorbPointer(
+                    child: TextFormField(
+                      controller: _birthdateTextController,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15.0),
+                        ),
+                        labelText: "Enter Date de naissance",
+                        prefixIcon: Icon(Icons.cake),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please Enter Birthdate';
+                        } else if (selectedBirthDate == null ||
+                            !_isAgeValid(selectedBirthDate!)) {
+                          return 'Vous devez avoir au moins 15 ans pour vous inscrire.';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ),
+              );
+  }
+
+  Padding usernamewidget() {
+    return Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: TextFormField(
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please Entre Name';
+                    }
+                    return null;
+                  },
+                  controller: _nameTextController,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                    ),
+                    labelText: "Entrer Full Name",
+                    prefixIcon: Icon(Icons.person),
+                  ),
+                  onTap: () {
+                    setState(() {
+                      passToggle = !passToggle;
+                    });
+                  },
+                ),
+              );
   }
 }

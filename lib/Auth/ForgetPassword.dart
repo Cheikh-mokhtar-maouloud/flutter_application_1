@@ -71,93 +71,15 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                       padding: EdgeInsets.only(left: 10.0),
                       child: ListView(
                         children: [
-                          Container(
-                            padding: EdgeInsets.only(left: 10.0),
-                            decoration: BoxDecoration(
-                              border:
-                                  Border.all(color: Colors.black54, width: 2.0),
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            child: TextFormField(
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please Enter Email';
-                                }
-                                return null;
-                              },
-                              controller: _emailTextController,
-                              style: TextStyle(color: Colors.black),
-                              decoration: InputDecoration(
-                                  hintText: "Email",
-                                  hintStyle: TextStyle(
-                                      fontSize: 18.0, color: Colors.black),
-                                  prefixIcon: Icon(
-                                    Icons.person,
-                                    color: Colors.black54,
-                                    size: 30.0,
-                                  ),
-                                  border: InputBorder.none),
-                            ),
-                          ),
+                          EmailWidget(),
                           SizedBox(
                             height: 40.0,
                           ),
-                          GestureDetector(
-                            onTap: () {
-                              if (_formkey.currentState!.validate()) {
-                                setState(() {
-                                  email = _emailTextController.text;
-                                });
-                                resetPassword();
-                              }
-                            },
-                            child: Container(
-                              padding: EdgeInsets.all(15),
-                              decoration: BoxDecoration(
-                                  color: Colors.black,
-                                  borderRadius: BorderRadius.circular(10)),
-                              child: Center(
-                                child: Text(
-                                  "Send Email",
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18.0,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                          ),
+                          Sendemailwidget(),
                           SizedBox(
                             height: 40.0,
                           ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                "Don't have an account?",
-                                style: TextStyle(
-                                    fontSize: 18.0, color: Colors.black),
-                              ),
-                              SizedBox(
-                                width: 5.0,
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => loginScreen()));
-                                },
-                                child: Text(
-                                  "Create",
-                                  style: TextStyle(
-                                      color: Color.fromARGB(225, 184, 166, 6),
-                                      fontSize: 20.0,
-                                      fontWeight: FontWeight.w500),
-                                ),
-                              )
-                            ],
-                          )
+                          LoginWidget(context),
                         ],
                       ),
                     ))),
@@ -165,5 +87,99 @@ class _ForgotPasswordState extends State<ForgotPassword> {
         ),
       ),
     );
+  }
+
+  Row LoginWidget(BuildContext context) {
+    return Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Don't have an account?",
+                              style: TextStyle(
+                                  fontSize: 18.0, color: Colors.black),
+                            ),
+                            SizedBox(
+                              width: 5.0,
+                            ),
+                            LoginScreen(context),
+                          ],
+                        );
+  }
+
+  GestureDetector LoginScreen(BuildContext context) {
+    return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => loginScreen()));
+                              },
+                              child: Text(
+                                "Create",
+                                style: TextStyle(
+                                    color: Color.fromARGB(225, 184, 166, 6),
+                                    fontSize: 20.0,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                            );
+  }
+
+  GestureDetector Sendemailwidget() {
+    return GestureDetector(
+                          onTap: () {
+                            if (_formkey.currentState!.validate()) {
+                              setState(() {
+                                email = _emailTextController.text;
+                              });
+                              resetPassword();
+                            }
+                          },
+                          child: Container(
+                            padding: EdgeInsets.all(15),
+                            decoration: BoxDecoration(
+                                color: Colors.black,
+                                borderRadius: BorderRadius.circular(10)),
+                            child: Center(
+                              child: Text(
+                                "Send Email",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18.0,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        );
+  }
+
+  Container EmailWidget() {
+    return Container(
+                          padding: EdgeInsets.only(left: 10.0),
+                          decoration: BoxDecoration(
+                            border:
+                                Border.all(color: Colors.black54, width: 2.0),
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: TextFormField(
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please Enter Email';
+                              }
+                              return null;
+                            },
+                            controller: _emailTextController,
+                            style: TextStyle(color: Colors.black),
+                            decoration: InputDecoration(
+                                hintText: "Email",
+                                hintStyle: TextStyle(
+                                    fontSize: 18.0, color: Colors.black),
+                                prefixIcon: Icon(
+                                  Icons.person,
+                                  color: Colors.black54,
+                                  size: 30.0,
+                                ),
+                                border: InputBorder.none),
+                          ),
+                        );
   }
 }

@@ -89,7 +89,8 @@ class _AllDoctorsScreenState extends State<AllDoctorsScreen> {
               doctorImg: docData['Image'],
               doctorName: docData['Nom'],
               rating: docData['Evaluation'],
-              allDoctors: [], // ou passez la liste complète si nécessaire
+              allDoctors: [],
+              // ou passez la liste complète si nécessaire
               // Ajoutez l'adresse ici
               doctorAddress: docData[
                   'adresse'], // Assurez-vous que 'adresse' correspond au champ Firestore

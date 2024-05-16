@@ -9,11 +9,14 @@ import 'package:flutter_application_1/main.dart';
 import 'package:flutter_application_1/screens/Notification.dart';
 import 'package:flutter_application_1/screens/video_call.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 
 
 class FirebaseApi {
+
+
   final _firebaseMessaging = FirebaseMessaging.instance;
 
 
@@ -54,11 +57,12 @@ AwesomeNotifications().createNotification(
           key: 'decline', label: 'Decline',color: Colors.red,autoDismissible: true)
     ]);
 AwesomeNotifications().setListeners(onActionReceivedMethod: (receivedNotification) async{
+  final SharedPreferences prefs=await SharedPreferences.getInstance() ;
 if (receivedNotification.buttonKeyPressed == 'accept') {
- log('accept');
-
+await prefs.setBool('isVideoCall', true);
   } else if (receivedNotification.buttonKeyPressed == 'decline') {
-    log('decline');
+  await prefs.setBool('isVideoCall', false);
+
 
  //   AwesomeNotifications().cancel(receivedNotification.id);
   }
@@ -85,11 +89,15 @@ else {
             key: 'decline', label: 'Decline',color: Colors.red,autoDismissible: true)
       ]);
   AwesomeNotifications().setListeners(onActionReceivedMethod: (receivedNotification) async{
+    final SharedPreferences prefs=await SharedPreferences.getInstance() ;
     if (receivedNotification.buttonKeyPressed == 'accept') {
-      log('accept');
+      await prefs.setBool('isVideoCall', true);
+
+
 
     } else if (receivedNotification.buttonKeyPressed == 'decline') {
       log('decline');
+      await prefs.setBool('isVideoCall', false);
 
       //   AwesomeNotifications().cancel(receivedNotification.id);
     }
@@ -113,7 +121,8 @@ else {
 
 //This is used to display the foreground notification
 
-  static Future<void> sendAndroidNotification() async {
+  static Future<void> sendAndroidNotification(String bady ,String title,String id,String to) async {
+
     try {
       http.Response response = await http.post(
         Uri.parse("https://fcm.googleapis.com/fcm/send"),
@@ -121,19 +130,20 @@ else {
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'key=AAAA_7bd7Vw:APA91bHhAA3rpdfQXAXvgfShg3vfiLiVlQPZn06EFXwDJejYiK4YKWRwjYXT8rEwu10voQGR2Rrzuzb3ynesuSIA8haJ7gRQk1ccerJfLJF0XkOb9T46H6j1AngHXODc_k6obic-JpLZ',
         },
+
         body: jsonEncode(
           <String, dynamic>{
             'notification': <String, dynamic>{
-              'body':"mohamed" ,
-              'title': 'Nueva Solicitud',
+              'body': bady,
+              'title': title,
             },
             'priority': 'high',
             'data': <String, dynamic>{
               'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-              'id': '1',
+              'id':  id,
               'status': 'done'
             },
-            'to': "e2DpJh2yTKq2OquU2V4amT:APA91bEntn_cKwTt7flAMpZpvv9VhGW1RV5tF3uWDhS8A1XmNZ3pFu0XVORIUgW7EYQVwDOq0DPIfl3BJcsPVSsUKwE7ne-RII03NPM_w8W3eg5PloxKIOnXx2cI09XE25noKiH1jzKZ",
+            'to': to,
 
           },
         ),

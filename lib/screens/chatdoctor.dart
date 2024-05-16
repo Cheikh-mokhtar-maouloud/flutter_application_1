@@ -37,6 +37,7 @@ class _ChatdocState extends State<Chatdoc> {
   final TextEditingController _messageController = TextEditingController();
   late final String _doctorId;
   late final String _userId;
+  late  String _doctorName = 'Mohamed'; // Valeur par défaut pour le nom
   String _patientName = 'Loading...'; // Valeur par défaut pour le nom
   String _patientImageUrl = 'default_image_url_here';
   bool _isLoaded = false;
@@ -47,6 +48,7 @@ class _ChatdocState extends State<Chatdoc> {
   void initState() {
     super.initState();
     _doctorId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    _doctorName = FirebaseAuth.instance.currentUser?.displayName ?? '';
     _userId = widget.userId;
     _conversationId = _generateConversationId();
     _isDoctor = true;
@@ -129,7 +131,7 @@ class _ChatdocState extends State<Chatdoc> {
                   );
                 }),
           ),
-          _buildBottomSheet(_doctorId),
+          _buildBottomSheet(_doctorId, _doctorName),
         ],
       ),
     );
@@ -236,7 +238,7 @@ class _ChatdocState extends State<Chatdoc> {
     );
   }
 
-  Container _buildBottomSheet(String doctorid) {
+  Container _buildBottomSheet(String doctorid,dotor_name) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.0),
       child: Row(
@@ -259,7 +261,10 @@ class _ChatdocState extends State<Chatdoc> {
           IconButton(
             icon: Icon(Icons.send),
             color: Color(0xFF7165D6),
-            onPressed: () {
+            onPressed: ()async {
+              DocumentSnapshot<Map<String, dynamic>> userSnapshot = await FirebaseFirestore.instance.collection('users').doc(_userId).get();
+              String user_device_token = userSnapshot.data()!['deviceId'];
+
               if (_messageController.text.trim().isNotEmpty) {
                 FunctionsSDoctor.sendMessage(
                     _messageController.text.trim(),
@@ -269,7 +274,7 @@ class _ChatdocState extends State<Chatdoc> {
                     _userId,
                     _conversationId,
                     _messageController);
-                FirebaseApi.sendAndroidNotification();
+                FirebaseApi.sendAndroidNotification(_messageController.text,dotor_name,"55",user_device_token);
               }
             },
           ),
