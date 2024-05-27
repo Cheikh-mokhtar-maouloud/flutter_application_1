@@ -30,15 +30,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _phoneController;
   late TextEditingController _addressController;
 
-  late TextEditingController _descriptionController;
-
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.name);
     _phoneController = TextEditingController(text: widget.phone);
     _addressController = TextEditingController(text: widget.address);
-    _descriptionController = TextEditingController(text: widget.description);
   }
 
   @override
@@ -47,11 +44,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _phoneController.dispose();
     _addressController.dispose();
 
-    _descriptionController.dispose();
     super.dispose();
   }
 
-// Inside _EditProfileScreenState in EditProfileScreen
   Future<void> _updateProfileData() async {
     if (_formKey.currentState!.validate()) {
       final user = FirebaseAuth.instance.currentUser;
@@ -62,8 +57,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             .update({
           'name': _nameController.text,
           'phone': _phoneController.text,
-          'Adress': _addressController.text,
-          'description': _descriptionController.text,
+          'address': _addressController.text,
         });
 
         // Pop the screen and return the updated data
@@ -82,6 +76,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Edit Profile'),
+        backgroundColor: Color(0xFF7165D6),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -89,10 +84,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           child: Form(
             key: _formKey,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                SizedBox(height: 20),
+                Center(
+                  child: Text(
+                    'Modifier vos informations',
+                    style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF7165D6)),
+                  ),
+                ),
+                SizedBox(height: 20),
                 TextFormField(
                   controller: _nameController,
-                  decoration: InputDecoration(labelText: 'Name'),
+                  decoration: InputDecoration(
+                    labelText: 'Name',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.person),
+                  ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your name';
@@ -100,9 +111,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     return null;
                   },
                 ),
+                SizedBox(height: 20),
                 TextFormField(
                   controller: _phoneController,
-                  decoration: InputDecoration(labelText: 'Phone'),
+                  decoration: InputDecoration(
+                    labelText: 'Phone',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.phone),
+                  ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your phone number';
@@ -110,9 +126,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     return null;
                   },
                 ),
+                SizedBox(height: 20),
                 TextFormField(
                   controller: _addressController,
-                  decoration: InputDecoration(labelText: 'Adress'),
+                  decoration: InputDecoration(
+                    labelText: 'Address',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.location_on),
+                  ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your address';
@@ -120,30 +141,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     return null;
                   },
                 ),
-
-                TextFormField(
-                  controller: _descriptionController,
-                  decoration: InputDecoration(labelText: 'description'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your description';
-                    }
-                    return null;
-                  },
+                SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        _updateProfileData();
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      textStyle: TextStyle(fontSize: 18),
+                    ),
+                    child: Text('Save Changes'),
+                  ),
                 ),
-                SizedBox(height: 20), // Espace supplémentaire entre les champs
-                Container(
-                    // Utilisation d'un Container pour spécifier la taille
-                    width: double
-                        .infinity, // Bouton prenant toute la largeur disponible
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          _updateProfileData();
-                        }
-                      },
-                      child: Text('Save Changes'),
-                    )),
               ],
             ),
           ),

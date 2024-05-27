@@ -144,7 +144,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 itemProfile('Email', widget.email, CupertinoIcons.mail),
                 const SizedBox(height: 10),
                 itemProfile(
-                    'Description',
+                    'dossier médical',
                     _description ?? 'No description provided',
                     CupertinoIcons.decrease_indent),
                 const SizedBox(height: 20),

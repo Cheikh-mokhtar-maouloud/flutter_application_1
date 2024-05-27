@@ -19,6 +19,7 @@ class HomeScreen extends StatefulWidget {
 
 List<String> symptoms = [
   "Anesthésiologie",
+  "kinésithérapeute",
   "Cardiologie",
   "Dermatologie",
   "Endocrinologie",
@@ -79,12 +80,24 @@ class _HomeScreenState extends State<HomeScreen> {
             .any((provider) => provider.providerId == "google.com")) {
           userName = user.displayName ?? '';
         } else {
-          final DocumentSnapshot userDoc = await FirebaseFirestore.instance
-              .collection("users")
-              .doc(user.uid)
-              .get();
-          final userData = userDoc.data() as Map<String, dynamic>;
-          userName = userData["name"] as String;
+          try {
+            final DocumentSnapshot userDoc = await FirebaseFirestore.instance
+                .collection("users")
+                .doc(user.uid)
+                .get();
+
+            if (userDoc.exists && userDoc.data() != null) {
+              final userData = userDoc.data() as Map<String, dynamic>;
+              userName = userData["name"] ?? '';
+            } else {
+              // Handle the case where the document does not exist or data is null
+              userName = 'Unknown User';
+            }
+          } catch (e) {
+            // Handle potential errors in fetching the document
+            print('Error fetching user document: $e');
+            userName = 'Unknown User';
+          }
         }
 
         await prefs.setString('userName', userName);
@@ -468,12 +481,18 @@ class _HomeScreenState extends State<HomeScreen> {
               Column(
                 children: [
                   Center(
-                    child: ElevatedButton(
+                    child: ElevatedButton.icon(
                       onPressed: () {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => AllDoctorsScreen()));
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => AllDoctorsScreen(),
+                          ),
+                        );
                       },
-                      child: Text('Tous les médecins'),
+                      icon: Icon(Icons.medical_services), // Ajoute l'icône ici
+                      label: Text(
+                        'Tous les médecins',
+                      ), // Texte du bouton
                     ),
                   ),
                   Center(

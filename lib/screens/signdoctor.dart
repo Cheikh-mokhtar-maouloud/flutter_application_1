@@ -27,6 +27,7 @@ class _SignUpScreenState extends State<SignUpScreendoc> {
       TextEditingController();
   List<String> symptoms = [
     "Anesthésiologie",
+    "kinésithérapeute",
     "Cardiologie",
     "Dermatologie",
     "Endocrinologie",

@@ -4,8 +4,10 @@ import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_application_1/Api/firebase_api.dart';
 import 'package:flutter_application_1/Api/homePageApi/homePageApi.dart';
 import 'package:flutter_application_1/components/dialogs.dart';
+import 'package:flutter_application_1/functions/functions.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -139,12 +141,13 @@ class _ChatScreenState extends State<ChatScreen> {
           'Vous devez avoir une réservation pour envoyer un message.');
       return;
     }
-
+    // FirebaseApi.sendAndroidNotification(
+    //     _messageController.text, doctname, "55", user_device_token);
     // Continuez avec l'envoi du message si toutes les conditions sont remplies.
     Map<String, dynamic> messageData = {
       'senderId': _userId,
       'receiverId': widget.doctorId,
-      'timestamp': Timestamp.now(),
+      'timestamp': Timestamp.fromDate(DateTime.now().toUtc()),
       'conversationId': _conversationId,
       'messageText': messageText,
       'imageUrl': imageUrl,
@@ -152,7 +155,16 @@ class _ChatScreenState extends State<ChatScreen> {
     };
 
     try {
-      await FirebaseFirestore.instance.collection('messages').add(messageData);
+      FunctionsSDoctor.sendMessage(
+          _messageController.text.trim(),
+          imageUrl,
+          fileUrl,
+          widget.doctorId,
+          _userId,
+          _conversationId,
+          _messageController,
+          false);
+      // await FirebaseFirestore.instance.collection('messages').add(messageData);
       _messageController.clear();
     } catch (e) {
       print("Erreur lors de l'envoi du message : $e");
@@ -333,18 +345,9 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: Color(0xFF7165D6),
         title: Row(
           children: [
-            CircleAvatar(
-              radius: 25,
-              backgroundImage: NetworkImage(_doctorImg),
-            ),
+            ImagedoctorWidget(),
             SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                widget.doctorName,
-                style: TextStyle(color: Colors.white),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
+            NamedoctorWidget(),
           ],
         ),
         actions: <Widget>[
@@ -437,6 +440,23 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           _buildBottomSheet(),
         ],
+      ),
+    );
+  }
+
+  CircleAvatar ImagedoctorWidget() {
+    return CircleAvatar(
+      radius: 25,
+      backgroundImage: NetworkImage(_doctorImg),
+    );
+  }
+
+  Expanded NamedoctorWidget() {
+    return Expanded(
+      child: Text(
+        widget.doctorName,
+        style: TextStyle(color: Colors.white),
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -614,16 +634,7 @@ class _ChatScreenState extends State<ChatScreen> {
           //   color: Colors.amber,
           // ),
           Expanded(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10),
-              child: TextFormField(
-                controller: _messageController,
-                decoration: InputDecoration(
-                  hintText: "envoiyer message ...",
-                  border: InputBorder.none,
-                ),
-              ),
-            ),
+            child: envoiyermessageWidget(),
           ),
           IconButton(
             onPressed: () {
@@ -639,6 +650,19 @@ class _ChatScreenState extends State<ChatScreen> {
             color: Color(0xFF7165D6),
           ),
         ],
+      ),
+    );
+  }
+
+  Padding envoiyermessageWidget() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 10),
+      child: TextFormField(
+        controller: _messageController,
+        decoration: InputDecoration(
+          hintText: "envoiyer message ...",
+          border: InputBorder.none,
+        ),
       ),
     );
   }

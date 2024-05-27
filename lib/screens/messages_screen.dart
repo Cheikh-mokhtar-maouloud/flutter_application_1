@@ -60,32 +60,6 @@ class _MessagesScreenState extends State<MessagesScreen> {
     return doctors;
   }
 
-  void _showChatAlert(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Réservation à venir'),
-          content: Text(
-              'Vous ne pouvez pas envoyer de message avant la date de votre réservation.'),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Retour'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          NavBarRoots()), // Redirigez vers HomeScreen
-                );
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -134,33 +108,24 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   itemCount: filteredDoctors.length,
                   itemBuilder: (context, index) {
                     final doctor = filteredDoctors[index];
-                    final reservationDate = doctor['reservationDate'].toDate();
-                    final canChat = DateTime.now().isAfter(reservationDate);
 
                     return ListTile(
                       leading: CircleAvatar(
                         backgroundImage: NetworkImage(doctor['doctorImg']),
                       ),
                       title: Text(doctor['doctorName']),
-                      subtitle: canChat
-                          ? Text('Tap to chat with the doctor.')
-                          : Text(
-                              'Le chat sera disponible à la date de votre réservation.'),
+                      subtitle: Text('Tap to chat with the doctor.'),
                       onTap: () {
-                        if (canChat) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ChatScreen(
-                                doctorId: doctor['doctorId'],
-                                doctorName: doctor['doctorName'],
-                                doctorImg: doctor['doctorImg'],
-                              ),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ChatScreen(
+                              doctorId: doctor['doctorId'],
+                              doctorName: doctor['doctorName'],
+                              doctorImg: doctor['doctorImg'],
                             ),
-                          );
-                        } else {
-                          _showChatAlert(context);
-                        }
+                          ),
+                        );
                       },
                     );
                   },

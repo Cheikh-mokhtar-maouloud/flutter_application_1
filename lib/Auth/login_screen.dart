@@ -38,16 +38,8 @@ class _loginScreenState extends State<loginScreen> {
 
       await LoginFunctions.loginandupdate(userCredential);
 
-
-
-
-
-
-
       Navigator.pushReplacement(
-
-          context,
-          MaterialPageRoute(builder: (context) => NavBarRoots()));
+          context, MaterialPageRoute(builder: (context) => NavBarRoots()));
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         showDialogError("No User Found for that Email");
@@ -62,8 +54,6 @@ class _loginScreenState extends State<loginScreen> {
       }
     }
   }
-
-
 
   void showDialogError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -90,10 +80,11 @@ class _loginScreenState extends State<loginScreen> {
                         SizedBox(height: 10),
                         Imagewidget(),
                         SizedBox(height: 10),
-                        buildemail("Please validate your email",_emailTextController,"Email",Icons.email),
+                        buildemail("Please validate your email",
+                            _emailTextController, "Email", Icons.email),
                         SizedBox(height: 15),
-                        buildemail("Please validate your password",_passwordTextController,"Password",Icons.lock),
-
+                        buildemail("Please validate your password",
+                            _passwordTextController, "Password", Icons.lock),
                         SizedBox(height: 20),
                         buttonlogin(),
                         Forgetwidget(context),
@@ -110,137 +101,132 @@ class _loginScreenState extends State<loginScreen> {
 
   button buttonlogin() {
     return button(
-                        title: " Login ",
-                        onTap: () {
-                          if (_formkey.currentState!.validate()) {
-                            userLogin();
-                          }
-                        },
-                      );
+      title: " Login ",
+      onTap: () {
+        if (_formkey.currentState!.validate()) {
+          userLogin();
+        }
+      },
+    );
   }
 
   Center Forgetwidget(BuildContext context) {
     return Center(
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => ForgotPassword()));
-                          },
-                          child: Text(
-                            "Forget Password",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      );
+      child: TextButton(
+        onPressed: () {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => ForgotPassword()));
+        },
+        child: Text(
+          "Mot de passe oublié",
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
   }
 
   Padding Imagewidget() {
     return Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Image.asset(
-                          "images/doctors.png",
-                        ),
-                      );
+      padding: const EdgeInsets.all(20),
+      child: Image.asset(
+        "images/doctors.png",
+      ),
+    );
   }
 
   Padding PasswordWidget() {
     return Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: TextFormField(
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please Entre Password';
-                            }
-                            return null;
-                          },
-                          controller: _passwordTextController,
-                          obscureText: passToggle,
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(
-                                  15.0), // Ajout de BorderRadius.circular(15.0)
-                            ),
-                            labelText: "Enter Password",
-                            prefixIcon: Icon(Icons.lock),
-                            suffixIcon: IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  passToggle = !passToggle;
-                                });
-                              },
-                              icon: Icon(
-                                passToggle
-                                    ? Icons.visibility_off
-                                    : Icons.visibility,
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: TextFormField(
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please Entre Password';
+          }
+          return null;
+        },
+        controller: _passwordTextController,
+        obscureText: passToggle,
+        decoration: InputDecoration(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(
+                15.0), // Ajout de BorderRadius.circular(15.0)
+          ),
+          labelText: "Enter Password",
+          prefixIcon: Icon(Icons.lock),
+          suffixIcon: IconButton(
+            onPressed: () {
+              setState(() {
+                passToggle = !passToggle;
+              });
+            },
+            icon: Icon(
+              passToggle ? Icons.visibility_off : Icons.visibility,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
-  Padding buildemail(String validateEmail,TextEditingController _emailTextController,String label,IconData icon) {
+  Padding buildemail(String validateEmail,
+      TextEditingController _emailTextController, String label, IconData icon) {
     return Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: TextFormField(
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return validateEmail;
-                            }
-                            return null;
-                          },
-                          controller: _emailTextController,
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15.0),
-                            ),
-                            labelText: "$label",
-                            prefixIcon: Icon(icon),
-                          ),
-                          onTap: () {
-                            setState(() {
-
-                            });
-                          },
-                        ),
-                      );
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: TextFormField(
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return validateEmail;
+          }
+          return null;
+        },
+        controller: _emailTextController,
+        decoration: InputDecoration(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          labelText: "$label",
+          prefixIcon: Icon(icon),
+        ),
+        onTap: () {
+          setState(() {});
+        },
+      ),
+    );
   }
 
   Row cREATEAcountCom(BuildContext context) {
     return Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "Don't have any account?",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black54,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => SignUpScreen(),
-                                  ));
-                            },
-                            child: Text(
-                              "Create Account",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF7165D6),
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          "Je n'ai aucun compte?",
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.black54,
+          ),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SignUpScreen(),
+                ));
+          },
+          child: Text(
+            "Créer un compte",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF7165D6),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

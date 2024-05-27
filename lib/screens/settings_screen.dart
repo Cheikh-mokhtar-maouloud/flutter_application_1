@@ -23,6 +23,22 @@ class _SettingScreenState extends State<SettingScreen> {
   File? _selectedImage;
   late Future<Map<String, dynamic>> _userProfileFuture;
   bool isLoading = true;
+  bool _notificationsEnabled = true;
+
+  Future<void> _loadNotificationPreference() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
+    });
+  }
+
+  Future<void> _toggleNotifications(bool value) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _notificationsEnabled = value;
+    });
+    await prefs.setBool('notifications_enabled', value);
+  }
 
   @override
   void initState() {
@@ -32,6 +48,7 @@ class _SettingScreenState extends State<SettingScreen> {
     _userImageUrlFuture = _getUserImageUrl();
     _userProfileFuture = _getUserProfileData();
     _initializeUserDetails();
+    _loadNotificationPreference();
   }
 
   Future<void> _initializeUserDetails() async {
@@ -124,7 +141,12 @@ class _SettingScreenState extends State<SettingScreen> {
           .collection("users")
           .doc(user.uid)
           .get();
-      return userDoc.data() as Map<String, dynamic>;
+      if (userDoc.exists && userDoc.data() != null) {
+        return userDoc.data() as Map<String, dynamic>;
+      } else {
+        // Handle the case where the document does not exist or contains no data
+        return {};
+      }
     }
     throw Exception('User not logged in');
   }
@@ -136,8 +158,10 @@ class _SettingScreenState extends State<SettingScreen> {
           .collection("users")
           .doc(user.uid)
           .get();
-      final userData = userDoc.data() as Map<String, dynamic>;
-      return userData["photoUrl"] ?? "";
+      if (userDoc.exists && userDoc.data() != null) {
+        final userData = userDoc.data() as Map<String, dynamic>;
+        return userData["photoUrl"] ?? "";
+      }
     }
     return "";
   }
@@ -145,19 +169,24 @@ class _SettingScreenState extends State<SettingScreen> {
   Future<String> _getUserName() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      // Vérifiez si l'utilisateur s'est connecté avec Google
+      // Check if the user signed in with Google
       if (user.providerData
           .any((provider) => provider.providerId == "google.com")) {
-        // Si l'utilisateur s'est connecté avec Google, retournez son nom directement
+        // If the user signed in with Google, return their name directly
         return user.displayName ?? "";
       } else {
-        // Sinon, récupérez le nom de l'utilisateur à partir de Firestore
+        // Otherwise, retrieve the user's name from Firestore
         final DocumentSnapshot userDoc = await FirebaseFirestore.instance
             .collection("users")
             .doc(user.uid)
             .get();
-        final userData = userDoc.data() as Map<String, dynamic>;
-        return userData["name"] as String;
+        if (userDoc.exists && userDoc.data() != null) {
+          final userData = userDoc.data() as Map<String, dynamic>;
+          return userData["name"] ?? "";
+        } else {
+          // Handle the case where the document does not exist or contains no data
+          return "";
+        }
       }
     }
     return "";
@@ -416,9 +445,14 @@ class _SettingScreenState extends State<SettingScreen> {
                 }),
                 SizedBox(height: 15),
                 _buildSettingTile(
-                    Icons.notifications_none_outlined, "Notifications", () {
-                  // Action to perform when "Notifications" is tapped
-                }),
+                  Icons.notifications_none_outlined,
+                  "Notifications",
+                  () {},
+                  trailing: Switch(
+                    value: _notificationsEnabled,
+                    onChanged: _toggleNotifications,
+                  ),
+                ),
                 SizedBox(height: 4),
                 _buildSettingTile(
                     Icons.language, "Changement de langue", _changeLanguage),
@@ -449,13 +483,10 @@ class _SettingScreenState extends State<SettingScreen> {
                   MaterialPageRoute(
                     builder: (context) => loginScreen(),
                   ),
-
                 );
-
               });
               SharedPreferences prefs = await SharedPreferences.getInstance();
               await prefs.clear();
-
             },
             leading: Container(
               padding: EdgeInsets.all(10),
@@ -482,7 +513,8 @@ class _SettingScreenState extends State<SettingScreen> {
     );
   }
 
-  Widget _buildSettingTile(IconData icon, String title, Function()? onTap) {
+  Widget _buildSettingTile(IconData icon, String title, Function()? onTap,
+      {Widget? trailing}) {
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -498,13 +530,16 @@ class _SettingScreenState extends State<SettingScreen> {
               size: 32,
             ),
             SizedBox(width: 20),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 20,
-                color: Colors.black87,
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.black87,
+                ),
               ),
             ),
+            if (trailing != null) trailing,
           ],
         ),
       ),

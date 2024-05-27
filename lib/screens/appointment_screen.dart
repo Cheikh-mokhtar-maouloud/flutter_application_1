@@ -292,16 +292,16 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
 
   Text DescriptionWidget() {
     return Text(
-          selectedDoctor!.description,
-          style: TextStyle(fontSize: 16, color: Colors.black87),
-        );
+      selectedDoctor!.description,
+      style: TextStyle(fontSize: 16, color: Colors.black87),
+    );
   }
 
   Text proposdemedecinWidget() {
     return Text(
-          "À propos de médecin",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        );
+      "experience medicale",
+      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    );
   }
 
   Row firstRow() {

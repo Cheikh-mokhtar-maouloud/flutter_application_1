@@ -25,7 +25,7 @@ Future<dynamic> dialogresev(BuildContext context) {
   );
 }
 
-void modelsheet(BuildContext context, String doctorId) {
+void modelsheet(BuildContext context, String doctorId,userId,String converId) {
   showModalBottomSheet(
     context: context,
     builder: (BuildContext context) {
@@ -52,7 +52,7 @@ void modelsheet(BuildContext context, String doctorId) {
             title: Text('Rédiger une ordonnance'),
             onTap: () {
               Navigator.pop(context);
-              FunctionsSDoctor.navigateToPrescriptionPage(context, doctorId);
+              FunctionsSDoctor.navigateToPrescriptionPage(context, doctorId,userId,converId);
             },
           ),
         ],

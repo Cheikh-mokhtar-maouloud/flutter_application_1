@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -31,11 +32,33 @@ class _SignUpScreenState extends State<SignUpScreen> {
   TextEditingController _descriptionTextController = TextEditingController();
   TextEditingController _birthdateTextController = TextEditingController();
   DateTime? selectedBirthDate;
+  TextEditingController _diseaseController = TextEditingController();
 
   List<String> addresses = ["Nema", "NKTT", "NDB", "Rosso", "Kifa"];
   final _formkey = GlobalKey<FormState>();
   String? imageUrl;
-
+  final List<String> _diseases = [
+    "Grippe",
+    "Diabète",
+    "Asthme",
+    "Bronchite",
+    "Hypertension",
+    "Arthrite",
+    "Pneumonie",
+    "Tuberculose",
+    "Cancer",
+    "Paludisme",
+    "COVID-19",
+    "Varicelle",
+    "Rougeole",
+    "Gastro-entérite",
+    "Hépatite",
+    "Herpès",
+    "VIH",
+    "Ebola",
+    "Zika",
+    "Dengue"
+  ];
 
   void _saveUserData(String imageUrl) async {
     // Ici, vous enregistrez les données utilisateur en utilisant l'URL de l'image
@@ -49,6 +72,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   void dispose() {
     // Assurez-vous de disposer le controller
     _birthdateTextController.dispose();
+    _diseaseController.dispose();
     super.dispose();
   }
 
@@ -88,7 +112,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 GestureDetector(
                   child: const Text('Caméra'),
                   onTap: () async {
-                    await ExtractImage(context, _picker,imageUrl);
+                    await ExtractImage(context, _picker, imageUrl);
                     // _uploadImage(image);
                   },
                 ),
@@ -109,28 +133,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Future<void> GaleriePicker(BuildContext context, ImagePicker _picker) async {
-     Navigator.of(context).pop();
-    final XFile? image =
-        await _picker.pickImage(source: ImageSource.gallery);
+    Navigator.of(context).pop();
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       File file = File(image.path);
-      String fileName =
-          DateTime.now().millisecondsSinceEpoch.toString();
-      Reference reference = FirebaseStorage.instance
-          .ref()
-          .child('profile_images/$fileName');
+      String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+      Reference reference =
+          FirebaseStorage.instance.ref().child('profile_images/$fileName');
       UploadTask uploadTask = reference.putFile(file);
-      TaskSnapshot storageTaskSnapshot =
-          await uploadTask.whenComplete(() {});
-      String downloadUrl =
-          await storageTaskSnapshot.ref.getDownloadURL();
+      TaskSnapshot storageTaskSnapshot = await uploadTask.whenComplete(() {});
+      String downloadUrl = await storageTaskSnapshot.ref.getDownloadURL();
       imageUrl = downloadUrl;
     }
   }
 
-
-
-  registration() async {
+  void registration() async {
     String email = _emailTextController.text;
     String password = _passwordTextController.text;
     String name = _nameTextController.text;
@@ -139,6 +156,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     String description = _descriptionTextController.text;
     DateTime birthDate =
         DateTime.tryParse(_birthdateTextController.text) ?? DateTime.now();
+    String maladie = _diseaseController.text;
 
     Duration ageDuration = DateTime.now().difference(birthDate);
     int age = (ageDuration.inDays / 365)
@@ -155,31 +173,33 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ));
       return;
     }
-
+    log(address);
     if (password.isNotEmpty &&
-        _nameTextController.text.isNotEmpty &&
+        name.isNotEmpty &&
         email.isNotEmpty &&
         phone.isNotEmpty &&
         address.isNotEmpty) {
       try {
-        final token= await FirebaseMessaging.instance.getToken();
+        final token = await FirebaseMessaging.instance.getToken();
         UserCredential userCredential = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(email: email, password: password);
-        // Assurez-vous que imageUrl est correctement défini
-        // et incluez-le dans les données utilisateur envoyées à Firestore
-        FirebaseFirestore.instance
+
+        String imageUrl = ''; // Assurez-vous que l'URL de l'image est défini
+
+        // Enregistrement dans Firestore
+        await FirebaseFirestore.instance
             .collection("users")
             .doc(userCredential.user!.uid)
             .set({
           "name": name,
           "email": email,
           "phone": phone,
-          "Adress": address,
-          "photoUrl":
-              imageUrl, // Assurez-vous que l'URL de l'image est incluse ici
+          "address": address,
+          // "photoUrl": imageUrl,
           "description": description,
           "birthDate": birthDate,
-          "deviceId": token
+          "maladie": maladie,
+          "deviceId": token,
         });
 
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -188,27 +208,53 @@ class _SignUpScreenState extends State<SignUpScreen> {
             style: TextStyle(fontSize: 20.0),
           ),
         ));
+
+        // Réinitialiser les champs de texte après l'enregistrement
+        _emailTextController.clear();
+        _passwordTextController.clear();
+        _nameTextController.clear();
+        _phoneTextController.clear();
+        _addressTextController.clear();
+        _descriptionTextController.clear();
+        _birthdateTextController.clear();
+        _diseaseController.clear();
+
+        // Naviguer vers une nouvelle page après l'enregistrement
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => NavBarRoots()));
       } on FirebaseAuthException catch (e) {
+        String message;
         if (e.code == 'weak-password') {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            backgroundColor: Colors.orangeAccent,
-            content: Text(
-              "Password Provided is too Weak",
-              style: TextStyle(fontSize: 18.0),
-            ),
-          ));
+          message = "Password Provided is too Weak";
         } else if (e.code == "email-already-in-use") {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            backgroundColor: Colors.orangeAccent,
-            content: Text(
-              "Account Already exists",
-              style: TextStyle(fontSize: 18.0),
-            ),
-          ));
+          message = "Account Already exists";
+        } else {
+          message = "An error occurred. Please try again.";
         }
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          backgroundColor: Colors.orangeAccent,
+          content: Text(
+            message,
+            style: TextStyle(fontSize: 18.0),
+          ),
+        ));
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          backgroundColor: Colors.red,
+          content: Text(
+            "An unexpected error occurred. Please try again.",
+            style: TextStyle(fontSize: 18.0),
+          ),
+        ));
       }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        backgroundColor: Colors.orangeAccent,
+        content: Text(
+          "All fields are required.",
+          style: TextStyle(fontSize: 18.0),
+        ),
+      ));
     }
   }
 
@@ -234,6 +280,42 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 SizedBox(height: 10),
                 Datenaissencewedjet(),
                 SizedBox(height: 10),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Autocomplete<String>(
+                    optionsBuilder: (TextEditingValue textEditingValue) {
+                      if (textEditingValue.text.isEmpty) {
+                        return const Iterable<String>.empty();
+                      }
+                      return _diseases.where((String option) {
+                        return option
+                            .toLowerCase()
+                            .contains(textEditingValue.text.toLowerCase());
+                      });
+                    },
+                    onSelected: (String selection) {
+                      _diseaseController.text = selection;
+                    },
+                    fieldViewBuilder: (context, textEditingController,
+                        focusNode, onFieldSubmitted) {
+                      return TextFormField(
+                        controller: textEditingController,
+                        focusNode: focusNode,
+                        decoration: InputDecoration(
+                          labelText: "Rechercher une maladie",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15.0),
+                          ),
+                          prefixIcon: Icon(Icons.sick),
+                        ),
+                        onFieldSubmitted: (String value) {
+                          onFieldSubmitted();
+                        },
+                      );
+                    },
+                  ),
+                ),
+                SizedBox(height: 10),
                 Emailwedget(),
                 SizedBox(height: 10),
                 PasswordWedget(),
@@ -243,8 +325,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 Descriptionwedget(),
                 SizedBox(height: 10),
                 AdressWedget(),
-                SizedBox(height: 10),
-                PhotoWedget(),
+                // SizedBox(height: 10),
+                // PhotoWedget(),
                 SizedBox(height: 20),
                 CreatacountWedget(context),
                 SizedBox(height: 15),
@@ -265,257 +347,269 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   TextButton LoginWidget(BuildContext context) {
     return TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => loginScreen(),
-                        ),
-                      );
-                    },
-                    child: Text(
-                      "Log In",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF7165D6),
-                      ),
-                    ),
-                  );
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => loginScreen(),
+          ),
+        );
+      },
+      child: Text(
+        "Log In",
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF7165D6),
+        ),
+      ),
+    );
   }
 
   Text AlreadyhaveanaccountWidget() {
     return Text(
-                    "Already have an account? ",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  );
+      "Already have an account? ",
+      style: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w500,
+      ),
+    );
   }
 
   button CreatacountWedget(BuildContext context) {
     return button(
-                title: "Create Account",
-                onTap: () async {
-                  // Vérifier d'abord si l'image est téléchargée avec succès
-                  // await _uploadImage();
-                  // Ensuite, enregistrer l'utilisateur uniquement si l'image est téléchargée
-                  if (imageUrl != null && _formkey.currentState!.validate()) {
-                    registration();
-                  } else {
-                    // Afficher un message d'erreur si l'image n'est pas téléchargée
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        backgroundColor: Colors.red,
-                        content: Text(
-                          "Please upload an image before registering.",
-                          style: TextStyle(fontSize: 18.0),
-                        ),
-                      ),
-                    );
-                  }
-                },
-              );
+      title: "Create Account",
+      onTap: () async {
+        // Vérifier d'abord si l'image est téléchargée avec succès
+        // await _uploadImage();
+        // Ensuite, enregistrer l'utilisateur uniquement si l'image est téléchargée
+        if (_formkey.currentState!.validate()) {
+          registration();
+        } else {
+          // Afficher un message d'erreur si l'image n'est pas téléchargée
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.red,
+              content: Text(
+                "Please upload an image before registering.",
+                style: TextStyle(fontSize: 18.0),
+              ),
+            ),
+          );
+        }
+      },
+    );
   }
 
-  Padding PhotoWedget() {
-    return Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: ElevatedButton(
-                  onPressed: _showImageSourceSelection,
-                  child: Text('Ajouter une photo'),
-                ),
-              );
-  }
+  // Padding PhotoWedget() {
+  //   return Padding(
+  //     padding: EdgeInsets.symmetric(horizontal: 20),
+  //     child: ElevatedButton(
+  //       onPressed: _showImageSourceSelection,
+  //       child: Text('Ajouter une photo'),
+  //     ),
+  //   );
+  // }
 
   Padding AdressWedget() {
     return Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: "Entrer Adress",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15.0),
-                    ),
-                  ),
-                  value: addresses.isNotEmpty ? addresses.first : null,
-                  onChanged: (value) {
-                    setState(() {
-                      _addressTextController.text = value!;
-                    });
-                  },
-                  items: addresses.map((address) {
-                    return DropdownMenuItem<String>(
-                      value: address,
-                      child: Text(address),
-                    );
-                  }).toList(),
-                ),
-              );
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: Autocomplete<String>(
+        optionsBuilder: (TextEditingValue textEditingValue) {
+          if (textEditingValue.text.isEmpty) {
+            return const Iterable<String>.empty();
+          }
+          return addresses.where((String option) {
+            return option
+                .toLowerCase()
+                .contains(textEditingValue.text.toLowerCase());
+          });
+        },
+        onSelected: (String selection) {
+          _addressTextController.text = selection;
+        },
+        fieldViewBuilder:
+            (context, textEditingController, focusNode, onFieldSubmitted) {
+          return TextFormField(
+            controller: textEditingController,
+            focusNode: focusNode,
+            decoration: InputDecoration(
+              labelText: "Rechercher une maladie",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15.0),
+              ),
+              prefixIcon: Icon(Icons.location_on),
+            ),
+            onFieldSubmitted: (String value) {
+              onFieldSubmitted();
+            },
+          );
+        },
+      ),
+    );
   }
 
   Padding Descriptionwedget() {
     return Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: TextFormField(
-                  controller: _descriptionTextController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15.0),
-                    ),
-                    labelText: "Entrer Description",
-                    prefixIcon: Icon(Icons.description),
-                  ),
-                  maxLength: 135, // Limite la description à 120 caractères
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please Enter Description';
-                    }
-                    return null;
-                  },
-                ),
-              );
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: TextFormField(
+        controller: _descriptionTextController,
+        decoration: InputDecoration(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          labelText: "Entrer dossier medicale",
+          prefixIcon: Icon(Icons.description),
+        ),
+        //maxLength: 135, // Limite la description à 120 caractères
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please Enter dossier medecale';
+          }
+          return null;
+        },
+      ),
+    );
   }
 
   Padding Phonewedget() {
     return Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: TextFormField(
-                  controller: _phoneTextController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15.0),
-                    ),
-                    labelText: "Entrer Phone Number",
-                    prefixIcon: Icon(Icons.phone),
-                  ),
-                  keyboardType: TextInputType.phone,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please Enter Phone Number';
-                    }
-                    return null;
-                  },
-                ),
-              );
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: TextFormField(
+        controller: _phoneTextController,
+        decoration: InputDecoration(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          labelText: "Entrer Phone Number",
+          prefixIcon: Icon(Icons.phone),
+        ),
+        keyboardType: TextInputType.phone,
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please Enter Phone Number';
+          }
+          return null;
+        },
+      ),
+    );
   }
 
   Padding PasswordWedget() {
     return Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: TextFormField(
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please Entre Password';
-                    }
-                    return null;
-                  },
-                  controller: _passwordTextController,
-                  obscureText: passToggle,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15.0),
-                    ),
-                    labelText: "Entrer Password",
-                    prefixIcon: Icon(Icons.lock),
-                    suffixIcon: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          passToggle = !passToggle;
-                        });
-                      },
-                      icon: Icon(
-                        passToggle ? Icons.visibility_off : Icons.visibility,
-                      ),
-                    ),
-                  ),
-                ),
-              );
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: TextFormField(
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please Entre Password';
+          }
+          return null;
+        },
+        controller: _passwordTextController,
+        obscureText: passToggle,
+        decoration: InputDecoration(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          labelText: "Entrer Password",
+          prefixIcon: Icon(Icons.lock),
+          suffixIcon: IconButton(
+            onPressed: () {
+              setState(() {
+                passToggle = !passToggle;
+              });
+            },
+            icon: Icon(
+              passToggle ? Icons.visibility_off : Icons.visibility,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Padding Emailwedget() {
     return Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: TextFormField(
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please Entre Email';
-                    }
-                    return null;
-                  },
-                  controller: _emailTextController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15.0),
-                    ),
-                    labelText: "Entrer Email",
-                    prefixIcon: Icon(Icons.email),
-                  ),
-                  onTap: () {
-                    setState(() {
-                      passToggle = !passToggle;
-                    });
-                  },
-                ),
-              );
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: TextFormField(
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please Entre Email';
+          }
+          return null;
+        },
+        controller: _emailTextController,
+        decoration: InputDecoration(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          labelText: "Entrer Email",
+          prefixIcon: Icon(Icons.email),
+        ),
+        onTap: () {
+          setState(() {
+            passToggle = !passToggle;
+          });
+        },
+      ),
+    );
   }
 
   Padding Datenaissencewedjet() {
     return Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: GestureDetector(
-                  onTap:
-                      _presentDatePicker, // Appel de la méthode pour ouvrir le DatePicker
-                  child: AbsorbPointer(
-                    child: TextFormField(
-                      controller: _birthdateTextController,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15.0),
-                        ),
-                        labelText: "Enter Date de naissance",
-                        prefixIcon: Icon(Icons.cake),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please Enter Birthdate';
-                        } else if (selectedBirthDate == null ||
-                            !_isAgeValid(selectedBirthDate!)) {
-                          return 'Vous devez avoir au moins 15 ans pour vous inscrire.';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                ),
-              );
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: GestureDetector(
+        onTap:
+            _presentDatePicker, // Appel de la méthode pour ouvrir le DatePicker
+        child: AbsorbPointer(
+          child: TextFormField(
+            controller: _birthdateTextController,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15.0),
+              ),
+              labelText: "Enter Date de naissance",
+              prefixIcon: Icon(Icons.cake),
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please Enter Birthdate';
+              } else if (selectedBirthDate == null ||
+                  !_isAgeValid(selectedBirthDate!)) {
+                return 'Vous devez avoir au moins 15 ans pour vous inscrire.';
+              }
+              return null;
+            },
+          ),
+        ),
+      ),
+    );
   }
 
   Padding usernamewidget() {
     return Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: TextFormField(
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please Entre Name';
-                    }
-                    return null;
-                  },
-                  controller: _nameTextController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15.0),
-                    ),
-                    labelText: "Entrer Full Name",
-                    prefixIcon: Icon(Icons.person),
-                  ),
-                  onTap: () {
-                    setState(() {
-                      passToggle = !passToggle;
-                    });
-                  },
-                ),
-              );
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: TextFormField(
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please Entre Name';
+          }
+          return null;
+        },
+        controller: _nameTextController,
+        decoration: InputDecoration(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          labelText: "Entrer Full Name",
+          prefixIcon: Icon(Icons.person),
+        ),
+        onTap: () {
+          setState(() {
+            passToggle = !passToggle;
+          });
+        },
+      ),
+    );
   }
 }

@@ -19,6 +19,8 @@ import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:io';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 class Chatdoc extends StatefulWidget {
   final String userId;
@@ -37,7 +39,8 @@ class _ChatdocState extends State<Chatdoc> {
   final TextEditingController _messageController = TextEditingController();
   late final String _doctorId;
   late final String _userId;
-  late  String _doctorName = 'Mohamed'; // Valeur par défaut pour le nom
+
+  late String _doctorName = 'Mohamed'; // Valeur par défaut pour le nom
   String _patientName = 'Loading...'; // Valeur par défaut pour le nom
   String _patientImageUrl = 'default_image_url_here';
   bool _isLoaded = false;
@@ -98,7 +101,10 @@ class _ChatdocState extends State<Chatdoc> {
               // Only show if loaded
               icon: Icon(Icons.video_call),
               onPressed: () => FunctionsSDoctor.initiateVideoCall(
-                  context, _userId, _patientName),
+                context,
+                _userId,
+                _patientName,
+              ),
             ),
         ],
       ),
@@ -238,7 +244,7 @@ class _ChatdocState extends State<Chatdoc> {
     );
   }
 
-  Container _buildBottomSheet(String doctorid,dotor_name) {
+  Container _buildBottomSheet(String doctorid, dotor_name) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.0),
       child: Row(
@@ -246,7 +252,7 @@ class _ChatdocState extends State<Chatdoc> {
           IconButton(
             icon: Icon(Icons.add),
             onPressed: () {
-              modelsheet(context, doctorid);
+              modelsheet(context, doctorid, _userId, _conversationId);
             },
           ),
           Expanded(
@@ -261,10 +267,20 @@ class _ChatdocState extends State<Chatdoc> {
           IconButton(
             icon: Icon(Icons.send),
             color: Color(0xFF7165D6),
-            onPressed: ()async {
-              DocumentSnapshot<Map<String, dynamic>> userSnapshot = await FirebaseFirestore.instance.collection('users').doc(_userId).get();
+            onPressed: () async {
+              DocumentSnapshot<Map<String, dynamic>> userSnapshot =
+                  await FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(_userId)
+                      .get();
+              DocumentSnapshot<Map<String, dynamic>> doct =
+                  await FirebaseFirestore.instance
+                      .collection('doctors')
+                      .doc(_doctorId)
+                      .get();
               String user_device_token = userSnapshot.data()!['deviceId'];
-
+              String doctname = doct.data()!['Nom'];
+              log(_doctorName);
               if (_messageController.text.trim().isNotEmpty) {
                 FunctionsSDoctor.sendMessage(
                     _messageController.text.trim(),
@@ -273,8 +289,10 @@ class _ChatdocState extends State<Chatdoc> {
                     _doctorId,
                     _userId,
                     _conversationId,
-                    _messageController);
-                FirebaseApi.sendAndroidNotification(_messageController.text,dotor_name,"55",user_device_token);
+                    _messageController,
+                    true);
+                FirebaseApi.sendAndroidNotification(
+                    _messageController.text, doctname, "55", user_device_token);
               }
             },
           ),
