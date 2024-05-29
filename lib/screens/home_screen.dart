@@ -191,6 +191,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final  now = DateTime.now().hour;
+    final isNight= now < 6 || now > 18;
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
@@ -212,7 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             String firstName = extractFirstWord(snapshot.data!);
 
                             return Text(
-                              "Bonjour, $firstName",
+                              !isNight?"Bonjour":"Bonsoir""$firstName",
                               style: TextStyle(
                                 fontSize: 30,
                                 fontWeight: FontWeight.w500,
